@@ -1,0 +1,9 @@
+To Do List for Advancd GGP
+
+Work on Renderer
+Make an Asset Manager
+Clean up importing using the new assimp library added to the project
+Make (Draggable or somethign) Gui for Transformations
+Add the ability to Add/Remove Lights (separate Gui window from objects? I think yes)
+Figure out a way to clean up EntityWindow's ridiculous amount of back and forth with Game.cpp. Possible solution could be a shared datastruct with all the bool(confirmation) values for each UI action. 
+

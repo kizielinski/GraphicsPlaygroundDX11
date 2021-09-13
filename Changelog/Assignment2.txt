@@ -1,0 +1,10 @@
+Changelog 9/12/2021
+
+Added: Transformation Hierarchies
+Added: Static Formation of planets and ships (Moon and Cyan ship are children of Earth)
+Added: New Imgui Element:Gives the user the ability to create/remove children one below the current entity the user is on. This allows for simple chaining of entities. Plans to upgrade in the future. 
+Added: Project is now part of a Git Repo (need to figure out how to include specific .obj files so i can only use a link for the next submission)
+Added: Figured out how to use CMake and built the assimp libraries. Will be putting those to use. Added them to the VS project for this assignment. 
+
+(Not a major edition)
+Added: TODO List for a.Ideas to add into the project for each assignment and b.Serious bugs that come up that need to be fixed, but don't inherently break the project.  
