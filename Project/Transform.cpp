@@ -17,6 +17,11 @@ Transform::Transform()
 
 Transform::~Transform()
 {
+	for (int i = 0; i < children.size(); i++)
+	{
+		children[i] = nullptr;
+	}
+	parent = nullptr;
 }
 
 void Transform::MoveAbsolute(float x, float y, float z)
