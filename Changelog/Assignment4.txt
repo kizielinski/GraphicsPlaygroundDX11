@@ -1,0 +1,19 @@
+Changelog 9/20/2021
+
+Added: Renderer Class
+
+Class works, need to implement dynamic light count next, that's the only thing not currently adjustable in my scene.
+
+Need to fix assimp library installation, pulled out for now due to Linker errors.
+
+There is a memory leak somewhere, missing a delete keywords on Entities I believe, not sure where though. 
+
+Game::Draw only has one line: currenderRender->Render(...) yay!
+
+Fixed my model .objs being ignored in my git repo so if should be good to pull from now! 
+
+Submission #4
+Git: https://github.com/kizielinski/GraphicsPlaygroundDX11
+
+Have a great night! 
+
