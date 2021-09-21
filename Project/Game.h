@@ -42,18 +42,19 @@ public:
 private:
 
 	// Initialization helper methods - feel free to customize, combine, etc.
-	void LoadLighting();
+	//void LoadLighting();
 	void LoadShaders();
 	void LoadDefaultTextures(); //Default objects we've been using all semester.
 	void LoadTextures(GraphicData newData);
 	void LoadCubeMap(wstring customSky);
-	void SetUpLights();
-	void SetUpLightsNormal();
+	//void SetUpLights();
+	//void SetUpLightsNormal();
 	void CreateBasicGeometry();
 	void CreateEntity(GraphicData newData);
 	void EstablishNewEntityData(GraphicData newData);
 	void EstablishNewLightData();
 	void UpdateGUIWindow();
+	void HandleUIActions();
 
 	
 	// Note the usage of ComPtr below
@@ -110,6 +111,7 @@ private:
 	EntityWindow entityWindow;
 	Entity* tempEntity;
 	vector<Entity*> liveEntities;
+	vector<Light> lights;
 	int currentIndex;
 
 	//Renderer

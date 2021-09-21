@@ -54,16 +54,18 @@ Game::Game(HINSTANCE hInstance)
 	specularIntensity = 1;
 	entityCounter = 0;
 	lightCounter = 0;
-
-	
+	currentIndex = 0;
 
 	light = Light();
 	upward = Light();
 	grey = Light();
 	diagonal = Light();
 	defaultLight = Light();
+	defaultTint = { 0, 0, 0, 0 };
 	ambientColor = { 0, 0, 0 };
 	
+	tempEntity = nullptr;
+	valueToRotate = 0.0f;
 }
 
 // --------------------------------------------------------
@@ -86,7 +88,7 @@ Game::~Game()
 	{
 		delete myMeshes[i];
 	}*/
-
+	
 	delete camera;
 	delete vertexShader;
 	delete pixelShader;	
@@ -135,8 +137,11 @@ void Game::Init()
 
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
-	LoadLighting();
+	//LoadLighting();
 	LoadShaders();
+
+	//Because of the way my program works (regarding browsing loading and reloading asssets) I need the renderer to be in front of everything, not after it.
+	currentRender = Renderer(device, context, swapChain, backBufferRTV, depthStencilView, width, height, lights, pixelShader, vertexShader);
 
 	baseData.meshPath = "../../Assets/sphere.obj";
 	baseData.albedoPath = L"../../Assets/Sun/Sun.jpg";
@@ -145,63 +150,60 @@ void Game::Init()
 	baseData.metalPath = L"../../Assets/Sun/SunM.png";
 
 	CreateBasicGeometry();
-
 	wstring baseSky = L"../../Assets/CubeMapTextures/SpaceMap.dds";
 	LoadCubeMap(baseSky);
-	
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
 	// Essentially: "What kind of shape should the GPU draw with our data?"
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	//Create a new buffer with desired sizes.
-	//Set up transform
-	/*transform.SetPosition(0.5f, 0, 0);
-	transform.SetScale(0.5f, 0.5f, 0.5f);
-	transform.SetRotation(0, 0, XM_PI);*/
 }
 
-void Game::LoadLighting() 
-{
-	specularIntensity = 1.0f;
-
-	ambientColor = DirectX::XMFLOAT3(0.1f, 0.1f, 0.1f);
-
-	//New light intialization
-	light.color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
-	light.intensity = 9.0f;
-	light.direction = DirectX::XMFLOAT3(1, 0, 0);
-	light.position = DirectX::XMFLOAT3(2, 0, 0);
-	light.lightType = 0;
-
-	//Upwards
-	upward.color = DirectX::XMFLOAT3(1.0f, 0.5f, 0);
-	upward.intensity = 0.3f;
-	upward.direction = DirectX::XMFLOAT3(0, 1, 0);
-	upward.position = DirectX::XMFLOAT3(0, 0, 0);
-	upward.lightType = 0;
-
-	//Diagonal
-	diagonal.color = DirectX::XMFLOAT3(1.0f, 0.01f, 0.01f);
-	diagonal.intensity = 6.0f;
-	diagonal.direction = DirectX::XMFLOAT3(0, 0, 0);
-	diagonal.position = DirectX::XMFLOAT3(2, 3, 0);
-	diagonal.lightType = 1;
-
-	//GreyLight
-	grey.color = DirectX::XMFLOAT3(0.8f, 0.8f, 0.8f);
-	grey.intensity = 0.6f;
-	grey.direction = DirectX::XMFLOAT3(-0.2f, 0.0f, -0.5f);
-	grey.position = DirectX::XMFLOAT3(0, 0, 0);
-	grey.lightType = 0;
-
-	//DefaultLight
-	defaultLight.color = DirectX::XMFLOAT3(0.4f, 0.4f, 0.4f);
-	defaultLight.intensity = 0.5f;
-	defaultLight.direction = DirectX::XMFLOAT3(-0.2f, -1.0f, 0.5f);
-	defaultLight.position = DirectX::XMFLOAT3(0, 0, 0);
-	defaultLight.lightType = 0;
-}
+//void Game::LoadLighting() 
+//{
+//	specularIntensity = 1.0f;
+//
+//	ambientColor = DirectX::XMFLOAT3(0.1f, 0.1f, 0.1f);
+//
+//	//New light intialization
+//	light.color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
+//	light.intensity = 9.0f;
+//	light.direction = DirectX::XMFLOAT3(1, 0, 0);
+//	light.position = DirectX::XMFLOAT3(2, 0, 0);
+//	light.lightType = 0;
+//	lights.push_back(light);
+//
+//	//Upwards
+//	upward.color = DirectX::XMFLOAT3(1.0f, 0.5f, 0);
+//	upward.intensity = 0.3f;
+//	upward.direction = DirectX::XMFLOAT3(0, 1, 0);
+//	upward.position = DirectX::XMFLOAT3(0, 0, 0);
+//	upward.lightType = 0;
+//	lights.push_back(upward);
+//
+//	//Diagonal
+//	diagonal.color = DirectX::XMFLOAT3(1.0f, 0.01f, 0.01f);
+//	diagonal.intensity = 6.0f;
+//	diagonal.direction = DirectX::XMFLOAT3(0, 0, 0);
+//	diagonal.position = DirectX::XMFLOAT3(2, 3, 0);
+//	diagonal.lightType = 1;
+//	lights.push_back(diagonal);
+//
+//	//GreyLight
+//	grey.color = DirectX::XMFLOAT3(0.8f, 0.8f, 0.8f);
+//	grey.intensity = 0.6f;
+//	grey.direction = DirectX::XMFLOAT3(-0.2f, 0.0f, -0.5f);
+//	grey.position = DirectX::XMFLOAT3(0, 0, 0);
+//	grey.lightType = 0;
+//	lights.push_back(grey);
+//
+//	//DefaultLight
+//	defaultLight.color = DirectX::XMFLOAT3(0.4f, 0.4f, 0.4f);
+//	defaultLight.intensity = 0.5f;
+//	defaultLight.direction = DirectX::XMFLOAT3(-0.2f, -1.0f, 0.5f);
+//	defaultLight.position = DirectX::XMFLOAT3(0, 0, 0);
+//	defaultLight.lightType = 0;
+//	lights.push_back(defaultLight);
+//}
 
 // --------------------------------------------------------
 // Loads shaders from compiled shader object (.cso) files
@@ -470,52 +472,52 @@ void Game::UpdateGUIWindow()
 	);
 }
 
-void Game::SetUpLights()
-{
-	pixelShader->SetData(
-		"light",
-		&light,
-		sizeof(Light)
-	);
+//void Game::SetUpLights()
+//{
+//	pixelShader->SetData(
+//		"light",
+//		&light,
+//		sizeof(Light)
+//	);
+//
+//	pixelShader->SetData(
+//		"upward",
+//		&upward,
+//		sizeof(Light)
+//	);
+//
+//	pixelShader->SetData(
+//		"diagonal",
+//		&diagonal,
+//		sizeof(Light)
+//	);
+//
+//	pixelShader->SetData(
+//		"grey",
+//		&grey,
+//		sizeof(Light)
+//	);
+//
+//	pixelShader->SetFloat3("ambientColor", ambientColor);
+//
+//	pixelShader->SetFloat("specularIntensity", baseMaterial->GetSpecularIntensity());
+//
+//	pixelShader->SetFloat3("camPosition", camera->GetPosition());
+//}
 
-	pixelShader->SetData(
-		"upward",
-		&upward,
-		sizeof(Light)
-	);
-
-	pixelShader->SetData(
-		"diagonal",
-		&diagonal,
-		sizeof(Light)
-	);
-
-	pixelShader->SetData(
-		"grey",
-		&grey,
-		sizeof(Light)
-	);
-
-	pixelShader->SetFloat3("ambientColor", ambientColor);
-
-	pixelShader->SetFloat("specularIntensity", baseMaterial->GetSpecularIntensity());
-
-	pixelShader->SetFloat3("camPosition", camera->GetPosition());
-}
-
-void Game::SetUpLightsNormal()
-{
-	/*pixelShader->SetFloat3("ambientColor", ambientColor);
-	pixelShader->SetFloat("specularIntensity", baseMaterial->GetSpecularIntensity());
-
-	pixelShader->SetData(
-		"defaultLight",
-		&defaultLight,
-		sizeof(Light)
-	);
-
-	pixelShader->SetFloat3("camPosition", camera->GetPosition());*/
-}
+//void Game::SetUpLightsNormal()
+//{
+//	/*pixelShader->SetFloat3("ambientColor", ambientColor);
+//	pixelShader->SetFloat("specularIntensity", baseMaterial->GetSpecularIntensity());
+//
+//	pixelShader->SetData(
+//		"defaultLight",
+//		&defaultLight,
+//		sizeof(Light)
+//	);
+//
+//	pixelShader->SetFloat3("camPosition", camera->GetPosition());*/
+//}
 
 
 // --------------------------------------------------------
@@ -527,28 +529,27 @@ void Game::OnResize()
 	// Handle base-level DX resize stuff
 	DXCore::OnResize();
 
+	currentRender.PostResize(DXCore::width, DXCore::height, backBufferRTV, depthStencilView);
+
 	//Update Camera for new window shape
 	camera->UpdateProjectionMatrix((float)width / height);
 }
 
-// --------------------------------------------------------
-// Update your game here - user input, move objects, AI, etc.
-// --------------------------------------------------------
-void Game::Update(float deltaTime, float totalTime)
+void Game::HandleUIActions()
 {
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
-	
+
 	if (ImGui::GetIO().WantCaptureMouse)
 	{
 		//TODO: Move this into a custom Input Class (didn't realize this wasn't already in one) 
 		//Open/Close UI
-		if(GetAsyncKeyState('W') & 0x8000)
+		if (GetAsyncKeyState('W') & 0x8000)
 		{
 			entityWindow.Enabled(false);
 		}
-		else if(GetAsyncKeyState('S') & 0x8000)
+		else if (GetAsyncKeyState('S') & 0x8000)
 		{
 			entityWindow.Enabled(true);
 		}
@@ -556,7 +557,7 @@ void Game::Update(float deltaTime, float totalTime)
 		if (GetAsyncKeyState('A') & 0x8000)
 		{
 			if ((entityCounter > 1 && entityWindow.ReturnEntityData().index > 0) && entityWindow.GetKeyLock())
-			{			
+			{
 				currentRender.DecrementCurrentEntity();
 				UpdateGUIWindow();
 			}
@@ -564,8 +565,8 @@ void Game::Update(float deltaTime, float totalTime)
 
 		if (GetAsyncKeyState('D') & 0x8000)
 		{
-			if ((entityWindow.ReturnEntityData().index < currentRender.EntitiesListSize()-1) && entityWindow.GetKeyLock())
-			{	
+			if ((entityWindow.ReturnEntityData().index < currentRender.EntitiesListSize() - 1) && entityWindow.GetKeyLock())
+			{
 				currentRender.IncrementCurrentEntity();
 				UpdateGUIWindow();
 			}
@@ -618,16 +619,23 @@ void Game::Update(float deltaTime, float totalTime)
 		LoadCubeMap(entityWindow.ReturnSkyPath());
 		entityWindow.SkyApplied();
 	}
-	
+
 	currentIndex = currentRender.ReturnCurrentEntityIndex();
 
 	//Update position of object
-
 	currentRender.AlterPosition(entityWindow.ReturnTranslation());
-	
+}
+
+// --------------------------------------------------------
+// Update your game here - user input, move objects, AI, etc.
+// --------------------------------------------------------
+void Game::Update(float deltaTime, float totalTime)
+{
+	HandleUIActions();
+
 	liveEntities[0]->GetTransform()->Rotate(0, 0.003f, 0);
 	liveEntities[1]->GetTransform()->Rotate(0, 0.001f, 0);
-	liveEntities[2]->GetTransform()->Rotate(0.0003, 0.0003f, 0);
+	liveEntities[2]->GetTransform()->Rotate(0.0003f, 0.0003f, 0);
 	liveEntities[3]->GetTransform()->Rotate(0.001f, 0.002f , 0);
 	float temp = (XMScalarCos(1.6f)+1)/8;
 
@@ -641,25 +649,21 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
-	//Once per frame, you're resetting the window
-	// Background color (Cornflower Blue in this case) for clearing
-	const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
-	context->ClearRenderTargetView(backBufferRTV.Get(), color);
-	context->ClearDepthStencilView(
-		depthStencilView.Get(),
-		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
-		1.0f,
-		0);
+	////Once per frame, you're resetting the window
+	//// Background color (Cornflower Blue in this case) for clearing
+	//const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
+	//context->ClearRenderTargetView(backBufferRTV.Get(), color);
+	//context->ClearDepthStencilView(
+	//	depthStencilView.Get(),
+	//	D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+	//	1.0f,
+	//	0);
 
-	//Setup light
-	//At some point move this into a renderer class
-	/*________*/
-	SetUpLights();
-	pixelShader->CopyAllBufferData();
-	
-	currentRender.Draw(deltaTime, totalTime, context, camera);
-	entityWindow.DisplayWindow(hWnd, DXCore::width, DXCore::height);
-	
-	swapChain->Present(0, 0);
-	context->OMSetRenderTargets(1, backBufferRTV.GetAddressOf(), depthStencilView.Get());
+	//Lights now in Renderer class
+	//SetUpLights();
+	//pixelShader->CopyAllBufferData();
+	//entityWindow.DisplayWindow(hWnd, DXCore::width, DXCore::height);
+
+	//All the above condensed into renderer now.
+	currentRender.Render(deltaTime, totalTime, camera, &entityWindow, hWnd);
 }
