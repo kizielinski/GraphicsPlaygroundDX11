@@ -30,7 +30,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float roughness = roughMapTexture.Sample(basicSampler, input.uv).r;
 	//float roughness = 0.9f;
 	float metalness = metalMapTexture.Sample(basicSampler, input.uv).r;
-	//float metalness = 1;
+	//metalness = 0;
 
 	//Specular color determination
 	float3 specularColor = lerp(F0_NON_METAL.rrr, albedo.rgb, metalness);
@@ -59,9 +59,9 @@ float4 main(VertexToPixel input) : SV_TARGET
 	//Finalize color to output
 	//float3 finalLight = (redLight + ambientColor);
 	//float3 finalLight = (whiteLight + redLight) * albedo;
-	float3 finalLight = (whiteLight + redLight) * albedo;
+	//float3 finalLight = (whiteLight + redLight) * albedo;
 	//float3 finalLight = (redLight) * albedo;
-	//float3 finalLight = redLight * albedo;
+	float3 finalLight = whiteLight ;
 	 
 
 	return float4(pow(finalLight, 1.0f / 2.2f), 1);

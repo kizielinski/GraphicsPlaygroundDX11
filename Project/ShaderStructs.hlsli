@@ -133,27 +133,12 @@ float3 FinalValueCalculation(float3 normal, float3 worldPos, float3 camPos, Ligh
 		//Directional Light
 	case 0:
 		//Diffuse calculation for our first light
-		//diffuse = Diffuse(normal, DirectionToLight(tempLight.direction), tempLight);
-		diffPreBalance = DiffusePBR(normal, tempLight.direction);
-		/*float3 toLight = normalize(-tempLight.direction);
-		float3 toCam = normalize(camPos - worldPos);
-		diffPreBalance = DiffusePBR(normal, toLight);*/
-
-		//Define specular light
-		//spec = Specular(tempLight.direction, worldPos, camPos, normal, specularIntensity);
+		diffPreBalance = DiffusePBR(normal, -tempLight.direction);
+		//roughness = 0.01f;
 		spec = MicrofacetBRDF(normal, DirectionToLight(tempLight.direction), camPos, roughness, specColor);
-		//spec = MicrofacetBRDF(normal, toLight, toCam, roughness, specColor);
-		//spec *= any(diffPreBalance);
-
+		//metalness = 0;
 		balancedDiff = DiffuseEnergyConserve(diffPreBalance, spec, metalness);
 
-		//Calculate final color
-		//finalColor = (directionDiffuseAmount * surfaceColor * tempLight.color * tempLight.intensity) + (ambientColor * surfaceColor);
-		//finalColor = surfaceColor * (diffuse + spec);
-		
-		//PBR implementation
-		//finalColor = surfaceColor;
-		//finalColor = (balancedDiff * surfaceColor + spec) * tempLight.intensity * tempLight.color;
 		finalColor = (balancedDiff*surfaceColor+spec)*tempLight.intensity * tempLight.color;
 		break;
 
@@ -162,12 +147,9 @@ float3 FinalValueCalculation(float3 normal, float3 worldPos, float3 camPos, Ligh
 		//Calculate direction
 		float3 pointLightDirection = tempLight.position - worldPos;
 
-		//Diffuse calculation
-		//diffuse = Diffuse(normal, DirectionToLight(pointLightDirection), tempLight);
 		diffPreBalance = DiffusePBR(normal, DirectionToLight(pointLightDirection));
 
 		//Change from Phong BRDF to Cook-Torrence BRDF
-		//spec = Specular(DirectionToLight(pointLightDirection), worldPos, camPos, normal, specularIntensity);
 		spec = MicrofacetBRDF(normal, DirectionToLight(pointLightDirection), ViewVector(camPos, worldPos), roughness, specColor);
 		spec *= any(diffPreBalance);
 

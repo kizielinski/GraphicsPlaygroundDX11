@@ -34,8 +34,8 @@ void Entity::DrawEntity(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, Cam
 		material->GetPixelShader()->SetShaderResourceView("normalMapTexture", material->GetNormalMapSRV());
 	}
 
-	material->GetPixelShader()->SetShaderResourceView("metalMapTexture", material->GetNormalMapSRV()); 
-	material->GetPixelShader()->SetShaderResourceView("roughMapTexture", material->GetNormalMapSRV());
+	material->GetPixelShader()->SetShaderResourceView("metalMapTexture", material->MetalTexture()); 
+	material->GetPixelShader()->SetShaderResourceView("roughMapTexture", material->RoughTexture());
 	material->GetPixelShader()->SetSamplerState("basicSampler", material->GetSampleState());
 
 	SimpleVertexShader* vs = material->GetVertexShader();
