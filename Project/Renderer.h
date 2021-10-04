@@ -9,32 +9,30 @@
 class Renderer
 {
 public:
-	Renderer();
 	Renderer(
-		Microsoft::WRL::ComPtr<ID3D11Device> device,
-		Microsoft::WRL::ComPtr<ID3D11DeviceContext> context,
-		Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain,
-		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> backBufferRTV,
-		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthBufferDSV,
-		unsigned int windowWidth,
-		unsigned int windowHeight,
-		//std::vector<Entity*> entities,
-		std::vector<Light> lights,
-		SimplePixelShader* pShader,
-		SimpleVertexShader* vShader
+		Microsoft::WRL::ComPtr<ID3D11Device> _device,
+		Microsoft::WRL::ComPtr<ID3D11DeviceContext> _context,
+		Microsoft::WRL::ComPtr<IDXGISwapChain> _swapChain,
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> _backBufferRTV,
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> _depthBufferDSV,
+		unsigned int _windowWidth,
+		unsigned int _windowHeight,
+		SimplePixelShader* _pShader,
+		SimpleVertexShader* _vShader,
+		SkyMap* _sky,
+		const std::vector<Entity*>& _entities,
+		const std::vector<Light>& _lights
 	);
 	~Renderer();
+
 	void Update(float deltaTime, float totalTime);
 	void Order();
 	void Render(float deltaTime, float totalTime, Camera* cam, EntityWindow* eW, HWND windowHandle);
-	void SetEntities(vector<Entity*> _myEntities); //Uses const value of entities now rather than passing in the current vector
+	void SetCurrentIndex(int index);
 	//void SetEntities();
 	void AddSkyBox(SkyMap* sM);
 	void AlterPosition(EntityPosition entityPos);
 	int EntitiesListSize();
-	void RemoveEntity(int index);
-	void IncrementCurrentEntity();
-	void DecrementCurrentEntity();
 	int ReturnCurrentEntityIndex();
 	Entity ReturnCurrentEntity();
 
@@ -46,7 +44,6 @@ public:
 	);
 		
 private:
-	std::vector<Entity*> myEntities;
 	//Skybox
 	SkyMap* mySkyBox;
 	int currentIndex;
@@ -60,9 +57,9 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthBufferDSV;
 	unsigned int windowWidth;
 	unsigned int windowHeight;
-	//const std::vector<Entity*> entities;
-	//const std::vector<Light> lights;
-	std::vector<Light> lights;
+	const std::vector<Entity*>& entities;
+	const std::vector<Light>& lights;
+	std::vector<Entity*> myEntities;
 
 	SimplePixelShader* pixelShader;
 	SimpleVertexShader* vertexShader;

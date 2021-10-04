@@ -1,51 +1,34 @@
  #include "Renderer.h"
 
-Renderer::Renderer()
-{
-	device = nullptr;
-	context = nullptr;
-	swapChain = nullptr;
-	backBufferRTV = nullptr;
-	depthBufferDSV = nullptr;
 
-	myEntities = vector<Entity*>();
-	lights = vector<Light>();
-
-	windowWidth = 100;
-	windowHeight = 100;
-
-	mySkyBox = nullptr;
-	currentIndex = -1;
-}
 
 Renderer::Renderer(
-	Microsoft::WRL::ComPtr<ID3D11Device> _device,
-	Microsoft::WRL::ComPtr<ID3D11DeviceContext> _context,
-	Microsoft::WRL::ComPtr<IDXGISwapChain> _swapChain,
-	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> _backBufferRTC,
-	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> _depthBufferDSV,
-	unsigned int _windowWidth,
-	unsigned int _windowHeight,
-	//std::vector<Entity*> _entities,
-	std::vector<Light> _lights,
-	SimplePixelShader* pShader,
-	SimpleVertexShader* vShader)
-	//: entities(_entities), lights(_lights) <-----This syntax didn't help because I also needed to intialize the default constructor which was the problem
+	Microsoft::WRL::ComPtr<ID3D11Device> _device, 
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> _context, 
+	Microsoft::WRL::ComPtr<IDXGISwapChain> _swapChain, 
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> _backBufferRTV, 
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> _depthBufferDSV, 
+	unsigned int _windowWidth, 
+	unsigned int _windowHeight, 
+	SimplePixelShader* _pShader, 
+	SimpleVertexShader* _vShader, 
+	SkyMap* _sky,
+	const std::vector<Entity*>& _entities, 
+	const std::vector<Light>& _lights) : entities(_entities), lights(_lights)
 {
 	device = _device;
 	context = _context;
 	swapChain = _swapChain;
-	backBufferRTV = _backBufferRTC;
+	backBufferRTV = _backBufferRTV;
 	depthBufferDSV = _depthBufferDSV;
 	windowWidth = _windowWidth;
 	windowHeight = _windowHeight;
-	myEntities = vector<Entity*>();
-	lights = _lights;
+	myEntities = _entities;
 	currentIndex = -1;
-	mySkyBox = nullptr;
+	mySkyBox = _sky;
 
-	pixelShader = pShader;
-	vertexShader = vShader;
+	pixelShader = _pShader;
+	vertexShader = _vShader;
 
 	LoadLighting();
 }
@@ -85,11 +68,16 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 		1.0f,
 		0);
 	
+	pixelShader->SetInt("SpecIBLTotalMipLevels", mySkyBox->ReturnCalculatedMipLevels());
+	pixelShader->SetShaderResourceView("BrdfLookUpMap", mySkyBox->ReturnLookUpTexture());
+	pixelShader->SetShaderResourceView("IrradianceIBLMap", mySkyBox->ReturnIrradianceCubeMap());
+	pixelShader->SetShaderResourceView("SpecularIBLMap", mySkyBox->ReturnConvolvedSpecularCubeMap());
+
 	DrawPointLights(cam);
 
-	for (int i = 0; i < myEntities.size(); i++)
+	for (int i = 0; i < entities.size(); i++)
 	{
-		myEntities[i]->DrawEntity(context, cam);
+		entities[i]->DrawEntity(context, cam);
 	}
 
 	mySkyBox->SkyDraw(context.Get(), cam);
@@ -98,24 +86,14 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 
 	swapChain->Present(0, 0);
 	context->OMSetRenderTargets(1, backBufferRTV.GetAddressOf(), depthBufferDSV.Get());
-
-	/*for (int i = 0; i < entities.size(); i++)
-	{
-		entities[i]->DrawEntity(context, cam);
-	}
-
-	sky->SkyDraw(context, cam);*/
 }
 
 //Makes sure that the entities is always live updated
 //This was in place before the renderer assignment
 //Could figure out the const vector<Entity*> constructor syntax so I left it as is for now
-void Renderer::SetEntities(vector<Entity*> _myEntities)
+void Renderer::SetCurrentIndex(int index)
 {
-	//Changed to use the const value of entities
-	myEntities.clear();
-	myEntities = _myEntities; //entities;
-	currentIndex = int(_myEntities.size()) - 1;//entities.size() - 1;
+	currentIndex = index;
 }
 
 void Renderer::AddSkyBox(SkyMap* sM)
@@ -125,47 +103,13 @@ void Renderer::AddSkyBox(SkyMap* sM)
 
 void Renderer::AlterPosition(EntityPosition entityPos)
 {
-	myEntities[currentIndex]->SetPositionDataStruct(entityPos);
-	myEntities[currentIndex]->GetTransform()->SetPosition(entityPos.X, entityPos.Y, entityPos.Z);
+	entities[currentIndex]->SetPositionDataStruct(entityPos);
+	entities[currentIndex]->GetTransform()->SetPosition(entityPos.X, entityPos.Y, entityPos.Z);
 }
 
 int Renderer::EntitiesListSize()
 {
-	return int(myEntities.size());
-}
-
-void Renderer::RemoveEntity(int index)
-{
-	Entity* e = myEntities[index];
-	myEntities.erase(myEntities.begin() + index);
-	delete e;
-	e = nullptr;
-
-	//Have to realign all of the entities with their new indice locations.
-	for (int i = 0; i < myEntities.size(); i++)
-	{
-		EntityDef temp;
-		temp = myEntities[i]->GetDataStruct();
-		temp.index = i;
-		myEntities[i]->SetDataStruct(temp);
-	}
-	DecrementCurrentEntity();
-}
-
-//Keeping track of the current index (also don't let it fall below 0)
-//Allows to return current selected entity.
-void Renderer::IncrementCurrentEntity()
-{
-	currentIndex++;
-}
-
-void Renderer::DecrementCurrentEntity()
-{
-	currentIndex--;
-	if (currentIndex < 0)
-	{
-		currentIndex = 0;
-	}
+	return int(entities.size());
 }
 
 int Renderer::ReturnCurrentEntityIndex()
@@ -175,7 +119,7 @@ int Renderer::ReturnCurrentEntityIndex()
 
 Entity Renderer::ReturnCurrentEntity()
 {
-	return *myEntities[currentIndex];
+	return *entities[currentIndex];
 }
 
 void Renderer::PostResize(unsigned int _windowWidth, unsigned int _windowHeight, Microsoft::WRL::ComPtr<ID3D11RenderTargetView> _backBufferRTV, Microsoft::WRL::ComPtr<ID3D11DepthStencilView> _depthBufferDSV)
@@ -201,7 +145,14 @@ void Renderer::SetUpLights(Camera* cam)
 		sizeof(Light)
 	);
 
+	/*pixelShader->SetData(
+		"lightList",
+		&lights,
+		sizeof(Light) * lights.size()
+	);*/
+
 	pixelShader->SetFloat3("ambientColor", ambientColor);
+
 
 	//pixelShader->SetFloat("specularIntensity", baseMaterial->GetSpecularIntensity()); //Need to figure out a way to grab base material
 	pixelShader->SetFloat("specularIntensity", 1.0f);

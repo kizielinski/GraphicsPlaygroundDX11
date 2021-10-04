@@ -1,6 +1,5 @@
 #ifndef __GGP_SHADER_PBR__
 #define __GGP_SHADER_PBR__
-
 // The fresnel value for non-metals (dielectrics)
 // Page 9: "F0 of nonmetals is now a constant 0.04"
 // http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf
@@ -9,6 +8,10 @@ static const float F0_NON_METAL = 0.04f;
 static const float MIN_ROUGHNESS = 0.0000001f; 
 // 6 zeros after decimal// Handy to have this as a constant
 static const float PI = 3.14159265359f;
+
+
+static const float TWO_PI = PI * 2.0f;
+static const float PI_OVER_2 = PI / 2.0f;
 
 // Lambert diffuse BRDF - Same as the basic lighting diffuse calculation!
 // - NOTE: this function assumes the vectors are already NORMALIZED!
@@ -103,6 +106,145 @@ float3 MicrofacetBRDF(float3 n, float3 l, float3 v, float roughness, float3 spec
 	// Denominator dot products partially canceled by G()!
 	// See page 16: http://blog.selfshadow.com/publications/s2012-shading-course/hoffman/s2012_pbs_physics_math_notes.pdf
 	return (D * F * G) / (4 * max(dot(n,v), dot(n,l)));
+}
+
+// === INDIRECT PBR (IBL) ===========================================
+
+// Indirect diffuse irradiance for the scene
+// 
+// Uses an irradiance map for indirect diffuse lighting
+//
+// irrMap			- The irradiance cube map
+// samp				- Sampler to use
+// direction		- Direction for sampling cube map
+//
+float3 IndirectDiffuse(TextureCube irrMap, SamplerState samp, float3 direction)
+{
+	// Sample in the specified direction - the irradiance map
+	// is a pre-computed cube map which represents light
+	// coming into this pixel from a particular hemisphere
+	float3 diff = irrMap.SampleLevel(samp, direction, 0).rgb;
+	return pow(abs(diff), 2.2);
+}
+
+
+// Indirect specular (environment reflections)
+//
+// Uses a pre-convolved cube map and a pre-calculated view-angle/roughness BRDF texture
+// to calculate the final "blurred" environment reflection color for this pixel
+//
+// envMap			- Pre-convolved environment map w/ mip levels
+// mips				- Number of mips in the environment map
+// brdfLookUp		- Pre-calc'd environment BRDF lookup texture
+// samp				- Sampler to use (MUST BE CLAMP ADDRESS MODE for envBRDF to work right!!!)
+// viewRefl			- View reflection direction at this pixel
+// NdotV			- Dot(normal, view vector) at this pixel
+// roughness		- Roughness of this pixel
+// specColor		- Specular color of this pixel (already taking into account metalness)
+//
+float3 IndirectSpecular(TextureCube envMap, int mips, Texture2D brdfLookUp, SamplerState samp, float3 viewRefl, float NdotV, float roughness, float3 specColor)
+{
+	// Ensure roughness isn't zero
+	roughness = max(roughness, MIN_ROUGHNESS);
+
+	// Calculate half of the split-sum approx (this texture is not gamma-corrected, as it just holds raw data)
+	float2 indirectBRDF = brdfLookUp.Sample(samp, float2(NdotV, roughness)).rg;
+	float3 indSpecFresnel = specColor * indirectBRDF.x + indirectBRDF.y; // Spec color is f0
+
+	// Sample the convolved environment map (other half of split-sum)
+	float3 envSample = envMap.SampleLevel(samp, viewRefl, roughness * (mips - 1)).rgb;
+
+	// Adjust environment sample by fresnel
+	return pow(abs(envSample), 2.2) * indSpecFresnel;
+}
+
+
+// === UTILITY FUNCTIONS for Indirect PBR Pre-Calculations ====================
+
+
+// Part of the Hammersley 2D sampling function.  More info here:
+// http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
+// This function is useful for computing numbers in the Van der Corput sequence
+//
+// Ok, so this looks like voodoo magic, and sort of is (at the bit level).
+// 
+// The entire point of this function is to Very Quickly, using bit math, 
+// mirror the binary version of an integer across the decimal point.
+//
+// Or, to put it another way: turn 0101.0 (the int) into 0.1010 (the float)
+//
+// Here is a quick list of example inputs & outputs:
+//
+// Input (int)	Binary (before)		Binary (after)		Output (as a float)
+//  0			 0000.0				 0.0000				 0.0
+//  1			 0001.0				 0.1000				 0.5
+//  2			 0010.0				 0.0100				 0.25
+//  3			 0011.0				 0.1100				 0.75
+//  4			 0100.0				 0.0010				 0.125
+//  5			 0101.0				 0.1010				 0.625
+//
+// Cool!  So...why?  Given any integer, we get a float in the range [0,1), 
+// and the resulting float values are fairly well distributed (rather than
+// all being "bunched" up near each other).  This is GREAT if we want to sample
+// some regular pixels across a large area of a texture to get an average/blur.
+//
+// bits - an unsigned integer value to "mirror" at the bit level
+//
+float radicalInverse_VdC(uint bits) {
+	bits = (bits << 16u) | (bits >> 16u);
+	bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+	bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+	bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+	bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+	return float(bits) * 2.3283064365386963e-10; // / 0x100000000
+}
+
+// Hammersley sampling
+// Useful to get some fairly-well-distributed (spread out) points on a 2D grid
+// http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
+//  - The X value of the float2 is simply i/N (current value/total values),
+//     which will be evenly distributed between 0 to 1 as i goes from 0 to N
+//  - The Y value will "jump around" a bit using the radicalInverse trick,
+//     but still end up being fairly evenly distributed between 0 and 1
+//
+// i - The current value (between 0 and N)
+// N - The total number of samples you'll be taking
+//
+float2 Hammersley2d(uint i, uint N) {
+	return float2(float(i) / float(N), radicalInverse_VdC(i));
+}
+
+// Important sampling with GGX
+// 
+// http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf
+//
+// Calculates a direction in space offset from a starting direction (N), based on
+// a roughness value and a point on a 2d grid.  The 2d grid value is essentially an
+// offset from the starting direction in 2d, so it needs to be translated to 3d first.
+//
+// Xi			- a point on a 2d grid, later converted to a 3d offset
+// roughness	- the roughness of the surface, which tells us how "blurry" reflections are
+// N			- The normal around which we generate this new direction
+//
+float3 ImportanceSampleGGX(float2 Xi, float roughness, float3 N)
+{
+	float a = roughness * roughness;
+
+	float Phi = 2 * PI * Xi.x;
+	float CosTheta = sqrt((1 - Xi.y) / (1 + (a * a - 1) * Xi.y));
+	float SinTheta = sqrt(1 - CosTheta * CosTheta);
+
+	float3 H;
+	H.x = SinTheta * cos(Phi);
+	H.y = SinTheta * sin(Phi);
+	H.z = CosTheta;
+
+	float3 UpVector = abs(N.z) < 0.999f ? float3(0, 0, 1) : float3(1, 0, 0);
+	float3 TangentX = normalize(cross(UpVector, N));
+	float3 TangentY = cross(N, TangentX);
+
+	// Tangent to world space
+	return TangentX * H.x + TangentY * H.y + N * H.z;
 }
 
 #endif

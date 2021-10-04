@@ -51,10 +51,17 @@ Game::Game(HINSTANCE hInstance)
 	vertexShader = nullptr;
 	pixelSkyShader = nullptr;
 	vertexSkyShader = nullptr;
+	fullscreenVS = nullptr;
+	irradiancePS = nullptr;
+	specularConvoledPS = nullptr;
+	lookUpTexturePS = nullptr;
+	sky = nullptr;
+	tempEntity = nullptr; 
+	currentRender = nullptr;
 	specularIntensity = 1;
 	entityCounter = 0;
 	lightCounter = 0;
-	currentIndex = 0;
+	currentIndex = -1;
 
 	light = Light();
 	upward = Light();
@@ -63,9 +70,7 @@ Game::Game(HINSTANCE hInstance)
 	defaultLight = Light();
 	defaultTint = { 0, 0, 0, 0 };
 	ambientColor = { 0, 0, 0 };
-	
-	tempEntity = nullptr;
-	valueToRotate = 0.0f;
+	valueToRotate = 0;
 }
 
 // --------------------------------------------------------
@@ -129,19 +134,23 @@ void Game::Init()
 	D3D11_SAMPLER_DESC sampDescription = {};
 	sampDescription.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDescription.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDescription.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sampDescription.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDescription.Filter = D3D11_FILTER_ANISOTROPIC;
 	sampDescription.MaxAnisotropy = 8;
 	sampDescription.MaxLOD = D3D11_FLOAT32_MAX;
 	device->CreateSamplerState(&sampDescription, sampler.GetAddressOf());
 
+	sampDescription.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sampDescription.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sampDescription.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	device->CreateSamplerState(&sampDescription, clampSampler.GetAddressOf());
+
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
-	//LoadLighting();
+	LoadLighting();
 	LoadShaders();
 
 	//Because of the way my program works (regarding browsing loading and reloading asssets) I need the renderer to be in front of everything, not after it.
-	currentRender = Renderer(device, context, swapChain, backBufferRTV, depthStencilView, width, height, lights, pixelShader, vertexShader);
 
 	baseData.meshPath = "../../Assets/sphere.obj";
 	baseData.albedoPath = L"../../Assets/Sun/Sun.jpg";
@@ -149,61 +158,70 @@ void Game::Init()
 	baseData.roughPath = L"../../Assets/Sun/SunR.png";
 	baseData.metalPath = L"../../Assets/Sun/SunM.png";
 
-	CreateBasicGeometry();
 	wstring baseSky = L"../../Assets/CubeMapTextures/SpaceMap.dds";
 	LoadCubeMap(baseSky);
+
+	//My implementation takes into account each newly created object, so the renderer must be initialized fist and then updated with each new entity.
+	currentRender = new Renderer(device, context, swapChain, backBufferRTV, depthStencilView, width, height, pixelShader, vertexShader, sky, liveEntities, lights);
+	CreateBasicGeometry();
+
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
 	// Essentially: "What kind of shape should the GPU draw with our data?"
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-//void Game::LoadLighting() 
-//{
-//	specularIntensity = 1.0f;
-//
-//	ambientColor = DirectX::XMFLOAT3(0.1f, 0.1f, 0.1f);
-//
-//	//New light intialization
-//	light.color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
-//	light.intensity = 9.0f;
-//	light.direction = DirectX::XMFLOAT3(1, 0, 0);
-//	light.position = DirectX::XMFLOAT3(2, 0, 0);
-//	light.lightType = 0;
-//	lights.push_back(light);
-//
-//	//Upwards
-//	upward.color = DirectX::XMFLOAT3(1.0f, 0.5f, 0);
-//	upward.intensity = 0.3f;
-//	upward.direction = DirectX::XMFLOAT3(0, 1, 0);
-//	upward.position = DirectX::XMFLOAT3(0, 0, 0);
-//	upward.lightType = 0;
-//	lights.push_back(upward);
-//
-//	//Diagonal
-//	diagonal.color = DirectX::XMFLOAT3(1.0f, 0.01f, 0.01f);
-//	diagonal.intensity = 6.0f;
-//	diagonal.direction = DirectX::XMFLOAT3(0, 0, 0);
-//	diagonal.position = DirectX::XMFLOAT3(2, 3, 0);
-//	diagonal.lightType = 1;
-//	lights.push_back(diagonal);
-//
-//	//GreyLight
-//	grey.color = DirectX::XMFLOAT3(0.8f, 0.8f, 0.8f);
-//	grey.intensity = 0.6f;
-//	grey.direction = DirectX::XMFLOAT3(-0.2f, 0.0f, -0.5f);
-//	grey.position = DirectX::XMFLOAT3(0, 0, 0);
-//	grey.lightType = 0;
-//	lights.push_back(grey);
-//
-//	//DefaultLight
-//	defaultLight.color = DirectX::XMFLOAT3(0.4f, 0.4f, 0.4f);
-//	defaultLight.intensity = 0.5f;
-//	defaultLight.direction = DirectX::XMFLOAT3(-0.2f, -1.0f, 0.5f);
-//	defaultLight.position = DirectX::XMFLOAT3(0, 0, 0);
-//	defaultLight.lightType = 0;
-//	lights.push_back(defaultLight);
-//}
+void Game::LoadLighting() 
+{
+	specularIntensity = 1.0f;
+
+	ambientColor = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
+
+	//New light intialization
+	light.color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
+	light.intensity = 1.0f;
+	light.direction = DirectX::XMFLOAT3(1, 0, 0);
+	light.position = DirectX::XMFLOAT3(2, 4, 0);
+	light.lightType = 0;
+	lightCounter++;
+	lights.push_back(light);
+
+	//Upwards
+	upward.color = DirectX::XMFLOAT3(1.0f, 0.5f, 0);
+	upward.intensity = 0.3f;
+	upward.direction = DirectX::XMFLOAT3(0, 1, 0);
+	upward.position = DirectX::XMFLOAT3(0, 0, 0);
+	upward.lightType = 0;
+	lightCounter++;
+	lights.push_back(upward);
+
+	//Diagonal
+	diagonal.color = DirectX::XMFLOAT3(1.0f, 0.01f, 0.01f);
+	diagonal.intensity = 6.0f;
+	diagonal.direction = DirectX::XMFLOAT3(0, 0, 0);
+	diagonal.position = DirectX::XMFLOAT3(2, 3, 0);
+	diagonal.lightType = 1;
+	lightCounter++;
+	lights.push_back(diagonal);
+
+	//GreyLight
+	grey.color = DirectX::XMFLOAT3(0.8f, 0.8f, 0.8f);
+	grey.intensity = 0.6f;
+	grey.direction = DirectX::XMFLOAT3(-0.2f, 0.0f, -0.5f);
+	grey.position = DirectX::XMFLOAT3(0, 0, 0);
+	grey.lightType = 0;
+	lightCounter++;
+	lights.push_back(grey);
+
+	//DefaultLight
+	defaultLight.color = DirectX::XMFLOAT3(0.4f, 0.4f, 0.4f);
+	defaultLight.intensity = 0.5f;
+	defaultLight.direction = DirectX::XMFLOAT3(-0.2f, -1.0f, 0.5f);
+	defaultLight.position = DirectX::XMFLOAT3(0, 0, 0);
+	defaultLight.lightType = 0;
+	lightCounter++;
+	lights.push_back(defaultLight);
+}
 
 // --------------------------------------------------------
 // Loads shaders from compiled shader object (.cso) files
@@ -223,68 +241,61 @@ void Game::LoadShaders()
 		device.Get(), context.Get(), GetFullPathTo_Wide(L"VertexShader.cso").c_str());	
 	vertexSkyShader = new SimpleVertexShader(
 		device.Get(), context.Get(), GetFullPathTo_Wide(L"VertexShaderCubeMap.cso").c_str());
+
+	fullscreenVS = new SimpleVertexShader(
+		device.Get(), context.Get(), GetFullPathTo_Wide(L"FullScreenVS.cso").c_str());
+	irradiancePS = new SimplePixelShader(
+		device.Get(), context.Get(), GetFullPathTo_Wide(L"IBLIrradianceMapPS.cso").c_str());
+	specularConvoledPS = new SimplePixelShader(
+		device.Get(), context.Get(), GetFullPathTo_Wide(L"IBLSpecularConvolutionsPS.cso").c_str());
+	lookUpTexturePS = new SimplePixelShader(
+		device.Get(), context.Get(), GetFullPathTo_Wide(L"IBLBrdfLookUpTablePS.cso").c_str());
+}
+
+void Game::RemoveEntity(int index)
+{
+	Entity* e = liveEntities[index];
+	liveEntities.erase(liveEntities.begin() + index);
+	delete e;
+	e = nullptr;
+
+	//Have to infrom the entities with their new indice locations.
+	for (int i = 0; i < liveEntities.size(); i++)
+	{
+		EntityDef temp;
+		temp = liveEntities[i]->GetDataStruct();
+		temp.index = i;
+		liveEntities[i]->SetDataStruct(temp);
+	}
+	DecrementCurrentEntity();
+}
+
+//Keeping track of the current index (also don't let it fall below 0)
+//Allows to return current selected entity.
+void Game::IncrementCurrentEntity()
+{
+	currentIndex++;
+	if (currentIndex > liveEntities.size())
+	{
+		currentIndex = (int)liveEntities.size() - 1;
+	}
+	currentRender->SetCurrentIndex(currentIndex);
+}
+
+void Game::DecrementCurrentEntity()
+{
+	currentIndex--;
+	if (currentIndex < 0)
+	{
+		currentIndex = 0;
+	}
+	currentRender->SetCurrentIndex(currentIndex);
 }
 
 //Depricated
 void Game::LoadDefaultTextures()
 {
-	////Load textures?
-	//CreateWICTextureFromFile(
-	//	device.Get(), //Allows creation of resource
-	//	GetFullPathTo_Wide(L"../../Assets/Textures/cobbleA.png").c_str(),
-	//	0, // The texture gets made, but we don't need the pointer
-	//	cobbleA.GetAddressOf()
-	//);
-
-	//CreateWICTextureFromFile(
-	//	device.Get(), //Allows creation of resource
-	//	GetFullPathTo_Wide(L"../../Assets/Textures/cobbleN.png").c_str(),
-	//	0, // The texture gets made, but we don't need the pointer
-	//	cobbleN.GetAddressOf()
-	//);
-
-	//CreateWICTextureFromFile(
-	//	device.Get(), //Allows creation of resource
-	//	GetFullPathTo_Wide(L"../../Assets/Textures/cobbleR.png").c_str(),
-	//	0, // The texture gets made, but we don't need the pointer
-	//	cobbleR.GetAddressOf()
-	//);
-
-	//CreateWICTextureFromFile(
-	//	device.Get(), //Allows creation of resource
-	//	GetFullPathTo_Wide(L"../../Assets/Textures/cobbleM.png").c_str(),
-	//	0, // The texture gets made, but we don't need the pointer
-	//	cobbleM.GetAddressOf()
-	//);
-
-	////Load textures?
-	//CreateWICTextureFromFile(
-	//	device.Get(), //Allows creation of resource
-	//	GetFullPathTo_Wide(L"../../Assets/Textures/bronzeA.png").c_str(),
-	//	0, // The texture gets made, but we don't need the pointer
-	//	bronzeA.GetAddressOf()
-	//);
-
-	//CreateWICTextureFromFile(
-	//	device.Get(), //Allows creation of resource
-	//	GetFullPathTo_Wide(L"../../Assets/Textures/bronzeN.png").c_str(),
-	//	0, // The texture gets made, but we don't need the pointer
-	//	bronzeN.GetAddressOf()
-	//);
-
-	//CreateWICTextureFromFile(
-	//	device.Get(), //Allows creation of resource
-	//	GetFullPathTo_Wide(L"../../Assets/Textures/bronzeR.png").c_str(),
-	//	0, // The texture gets made, but we don't need the pointer
-	//	bronzeR.GetAddressOf()
-	//);
-
-	//CreateWICTextureFromFile(
-	//	device.Get(), //Allows creation of resource
-	//	GetFullPathTo_Wide(L"../../Assets/Textures/bronzeM.png").c_str(),
-	//	0, // The texture gets made, but we don't need the pointer
-	//	bronzeM.GetAddressOf()
-	//);
+	
 }
 
 void Game::LoadTextures(GraphicData newData)
@@ -332,8 +343,8 @@ void Game::LoadCubeMap(wstring customSky)
 		spaceMapSRV.GetAddressOf()
 	);
 
-	Mesh* mesh1 = new Mesh(GetFullPathTo("../../Assets/cube.obj").c_str(), device);
-	currentRender.AddSkyBox(new SkyMap(mesh1, sampler, device, spaceMapSRV, pixelSkyShader, vertexSkyShader));
+	Mesh* mesh1 = new Mesh(GetFullPathTo("../../Assets/cube.obj").c_str(), device); 
+	sky = new SkyMap(mesh1, sampler, device, context, spaceMapSRV, pixelSkyShader, vertexSkyShader, fullscreenVS, irradiancePS, specularConvoledPS, lookUpTexturePS);
 }
 
 // --------------------------------------------------------
@@ -421,10 +432,10 @@ void Game::CreateEntity(GraphicData newData)
 	myMeshes.push_back(newMesh.get());
 
 	LoadTextures(newData);
-	baseMaterial = std::make_shared<Material>(pixelShader, vertexShader, defaultTint, specularIntensity, inputAlbedo.Get(), inputNormal.Get(), inputRough.Get(), inputMetal.Get(), sampler.Get());
+	baseMaterial = std::make_shared<Material>(pixelShader, vertexShader, defaultTint, specularIntensity, inputAlbedo.Get(), inputNormal.Get(), inputRough.Get(), inputMetal.Get(), sampler.Get(), clampSampler.Get());
 	
 	EntityDef newDef;
-	newDef.index = currentRender.EntitiesListSize();
+	newDef.index = (int)liveEntities.size();
 	newDef.shadows = 1;
 	newDef.transparency = 0;
 
@@ -435,10 +446,10 @@ void Game::CreateEntity(GraphicData newData)
 
 	tempEntity = new Entity(newMesh.get(), baseMaterial.get(), newDef, newData);
 	liveEntities.push_back(tempEntity);
-	currentRender.SetEntities(liveEntities);
+	IncrementCurrentEntity();
 	entityWindow.SetCurrentEntity(newDef, newData, currentPos);
 	entityCounter++;
-	std::cout << currentRender.EntitiesListSize() << std::endl;
+	std::cout << currentRender->EntitiesListSize() << std::endl;
 }
 
 void Game::EstablishNewEntityData(GraphicData newData)
@@ -451,7 +462,7 @@ void Game::EstablishNewEntityData(GraphicData newData)
 		//New textures
 		inputAlbedo.Get(), inputNormal.Get(), inputRough.Get(), inputMetal.Get(), 
 		//Sampler
-		sampler.Get());
+		sampler.Get(), clampSampler.Get());
 
 	tempEntity->AssignMesh(tempMesh);
 	tempEntity->AssignMaterial(tempMaterial);
@@ -466,9 +477,9 @@ void Game::EstablishNewLightData()
 void Game::UpdateGUIWindow()
 {
 	entityWindow.SetCurrentEntity(
-		currentRender.ReturnCurrentEntity().GetDataStruct(),
-		currentRender.ReturnCurrentEntity().GetGraphicDataStruct(),
-		currentRender.ReturnCurrentEntity().GetPositionDataStruct()
+		currentRender->ReturnCurrentEntity().GetDataStruct(),
+		currentRender->ReturnCurrentEntity().GetGraphicDataStruct(),
+		currentRender->ReturnCurrentEntity().GetPositionDataStruct()
 	);
 }
 
@@ -529,7 +540,7 @@ void Game::OnResize()
 	// Handle base-level DX resize stuff
 	DXCore::OnResize();
 
-	currentRender.PostResize(DXCore::width, DXCore::height, backBufferRTV, depthStencilView);
+	currentRender->PostResize(DXCore::width, DXCore::height, backBufferRTV, depthStencilView);
 
 	//Update Camera for new window shape
 	camera->UpdateProjectionMatrix((float)width / height);
@@ -558,16 +569,16 @@ void Game::HandleUIActions()
 		{
 			if ((entityCounter > 1 && entityWindow.ReturnEntityData().index > 0) && entityWindow.GetKeyLock())
 			{
-				currentRender.DecrementCurrentEntity();
+				DecrementCurrentEntity();
 				UpdateGUIWindow();
 			}
 		}
 
 		if (GetAsyncKeyState('D') & 0x8000)
 		{
-			if ((entityWindow.ReturnEntityData().index < currentRender.EntitiesListSize() - 1) && entityWindow.GetKeyLock())
+			if ((entityWindow.ReturnEntityData().index < currentRender->EntitiesListSize() - 1) && entityWindow.GetKeyLock())
 			{
-				currentRender.IncrementCurrentEntity();
+				IncrementCurrentEntity();
 				UpdateGUIWindow();
 			}
 		}
@@ -591,7 +602,7 @@ void Game::HandleUIActions()
 	}
 	if (entityWindow.CanDeleteEntity() && entityCounter > 1)
 	{
-		currentRender.RemoveEntity(entityWindow.ReturnEntityData().index);
+		RemoveEntity(entityWindow.ReturnEntityData().index);
 		myMeshes.erase(myMeshes.begin() + entityWindow.ReturnEntityData().index);
 		entityWindow.EntityDeletionComplete();
 		UpdateGUIWindow();
@@ -620,10 +631,10 @@ void Game::HandleUIActions()
 		entityWindow.SkyApplied();
 	}
 
-	currentIndex = currentRender.ReturnCurrentEntityIndex();
+	currentIndex = currentRender->ReturnCurrentEntityIndex();
 
 	//Update position of object
-	currentRender.AlterPosition(entityWindow.ReturnTranslation());
+	currentRender->AlterPosition(entityWindow.ReturnTranslation());
 }
 
 // --------------------------------------------------------
@@ -665,5 +676,5 @@ void Game::Draw(float deltaTime, float totalTime)
 	//entityWindow.DisplayWindow(hWnd, DXCore::width, DXCore::height);
 
 	//All the above condensed into renderer now.
-	currentRender.Render(deltaTime, totalTime, camera, &entityWindow, hWnd);
+	currentRender->Render(deltaTime, totalTime, camera, &entityWindow, hWnd);
 }

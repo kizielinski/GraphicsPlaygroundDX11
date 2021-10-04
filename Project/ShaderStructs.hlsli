@@ -18,6 +18,10 @@ struct DirectionalLightInput
 	float3 direction      : POSITION;
 };
 
+#define LIGHT_DIRECTIONAL	0
+#define LIGHT_POINT		    1
+//#define LIGHT_SPOT			2
+
 struct Light
 {
 	float3 color;
@@ -78,6 +82,28 @@ struct VertexToPixelSky
 	float3 sampleDir : DIRECTION;
 };
 
+float3 RawNormalMapData(Texture2D map, SamplerState samp, float2 uv)
+{
+	return map.Sample(samp, uv).rgb * 2.0f - 1.0f;
+}
+
+float3 ComputeNormalMap(Texture2D map, SamplerState samp, float2 uv, float3 normal, float3 tangent)
+{
+	//Sample and unpack the normal
+	float3 normalFromRawData = RawNormalMapData(map, samp, uv);
+
+	float3 Normal = normal;
+	//Gram-Schmidt orthogonalization for the tangent value
+	float3 Tangent = normalize(tangent - Normal * dot(tangent, Normal));
+	float3 BiTangent = cross(Tangent, Normal); //Create the bitangent value
+
+	//Create the final matrix
+	float3x3 TBNMatrix = float3x3(Tangent, BiTangent, Normal);
+
+	//Apply changes to normal, and do some more normal things within this totally normal function ^_^
+	return normalize(mul(normalFromRawData, TBNMatrix));
+}
+
 //Diffuse total Light calculation
 float3 Diffuse(float3 normal, float3 dirToLight, Light tempLight)
 {
@@ -131,19 +157,19 @@ float3 FinalValueCalculation(float3 normal, float3 worldPos, float3 camPos, Ligh
 	switch (lightType)
 	{
 		//Directional Light
-	case 0:
+	case LIGHT_DIRECTIONAL:
 		//Diffuse calculation for our first light
 		diffPreBalance = DiffusePBR(normal, -tempLight.direction);
-		//roughness = 0.01f;
+		
 		spec = MicrofacetBRDF(normal, DirectionToLight(tempLight.direction), camPos, roughness, specColor);
-		//metalness = 0;
+		
 		balancedDiff = DiffuseEnergyConserve(diffPreBalance, spec, metalness);
 
 		finalColor = (balancedDiff*surfaceColor+spec)*tempLight.intensity * tempLight.color;
 		break;
 
 		//Point Light
-	case 1:
+	case LIGHT_POINT:
 		//Calculate direction
 		float3 pointLightDirection = tempLight.position - worldPos;
 

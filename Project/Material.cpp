@@ -5,7 +5,7 @@
 #include <memory>
 using namespace std;
 
-Material::Material(SimplePixelShader* pixelShader, SimpleVertexShader* vertexShader, DirectX::XMFLOAT4 colorTint, float specularIntensity, ID3D11ShaderResourceView* _textureSRV, ID3D11ShaderResourceView* _normalMapSRV, ID3D11ShaderResourceView* _roughMapSRV, ID3D11ShaderResourceView* _metalMapSRV, ID3D11SamplerState* _sampler)
+Material::Material(SimplePixelShader* pixelShader, SimpleVertexShader* vertexShader, DirectX::XMFLOAT4 colorTint, float specularIntensity, ID3D11ShaderResourceView* _textureSRV, ID3D11ShaderResourceView* _normalMapSRV, ID3D11ShaderResourceView* _roughMapSRV, ID3D11ShaderResourceView* _metalMapSRV, ID3D11SamplerState* _sampler, ID3D11SamplerState* _clampSampler)
 {
     pShader = pixelShader;
     vShader = vertexShader;
@@ -16,6 +16,7 @@ Material::Material(SimplePixelShader* pixelShader, SimpleVertexShader* vertexSha
     roughMapSRV = _roughMapSRV;
     metalMapSRV = _metalMapSRV;
     sampler = _sampler;
+    clampSampler = _clampSampler;
 }
 
 Material::~Material()
@@ -29,6 +30,7 @@ void Material::ClearMaterial()
     roughMapSRV->Release();
     metalMapSRV->Release();
     sampler->Release();
+    clampSampler->Release();
 }
 
 SimplePixelShader* Material::GetPixelShader()
@@ -65,6 +67,12 @@ ID3D11SamplerState* Material::GetSampleState()
 {
     return sampler;
 }
+
+ID3D11SamplerState* Material::GetClampSampleState()
+{
+    return clampSampler;
+}
+
 
 void Material::SetColorTint(DirectX::XMFLOAT4 newTint)
 {

@@ -42,7 +42,7 @@ public:
 private:
 
 	// Initialization helper methods - feel free to customize, combine, etc.
-	//void LoadLighting();
+	void LoadLighting();
 	void LoadShaders();
 	void LoadDefaultTextures(); //Default objects we've been using all semester.
 	void LoadTextures(GraphicData newData);
@@ -55,6 +55,9 @@ private:
 	void EstablishNewLightData();
 	void UpdateGUIWindow();
 	void HandleUIActions();
+	void RemoveEntity(int index);
+	void IncrementCurrentEntity();
+	void DecrementCurrentEntity();
 
 	
 	// Note the usage of ComPtr below
@@ -70,20 +73,17 @@ private:
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelSkyShader;
 	SimpleVertexShader* vertexSkyShader;
+
+	//IBL
+	SimpleVertexShader* fullscreenVS;
+	SimplePixelShader* irradiancePS;
+	SimplePixelShader* specularConvoledPS;
+	SimplePixelShader* lookUpTexturePS;
+
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
 
 	//Texture Resources
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> spaceMapSRV; 
-	
-	//PBR Textures - List depricated, these textures are dynamic now.
-	//Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobbleA; 
-	//Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobbleN; 
-	//Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobbleR; 
-	//Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobbleM; 
-	//Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> bronzeA;
-	//Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> bronzeN;
-	//Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> bronzeR;
-	//Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> bronzeM;
 	
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> inputAlbedo;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> inputNormal;
@@ -92,6 +92,7 @@ private:
 
 	//Sampler, Rasterizer, Depth-Stencil States (Min: One per program)
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler; 
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> clampSampler; 
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizer;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencil;
 	
@@ -103,8 +104,6 @@ private:
 
 	//Materials
 	std::shared_ptr<Material> baseMaterial;
-	//std::shared_ptr<Material> secondaryMaterial;
-	//std::shared_ptr<Material> tertiaryMaterial;
 	
 	//TestWindow
 	UIWindow testWindow;
@@ -114,8 +113,10 @@ private:
 	vector<Light> lights;
 	int currentIndex;
 
+	SkyMap* sky;
+
 	//Renderer
-	Renderer currentRender;
+	Renderer* currentRender;
 	//Counter to keep track objects in scene
 	int entityCounter;
 	int lightCounter;

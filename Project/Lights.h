@@ -4,6 +4,10 @@
 #pragma once
 #include <DirectXMath.h>
 
+#define LIGHT_DIRECTIONAL	0
+#define LIGHT_POINT		    1
+//#define LIGHT_SPOT			2
+
 struct Light
 {
 	DirectX::XMFLOAT3 color;
