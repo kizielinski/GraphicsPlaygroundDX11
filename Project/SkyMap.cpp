@@ -99,22 +99,22 @@ void SkyMap::SkyDraw(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, Camera
 
 Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SkyMap::ReturnIrradianceCubeMap()
 {
-	return irraIBLCubeMap;
+	return irraIBLCubeMap.Get();
 }
 
 Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SkyMap::ReturnConvolvedSpecularCubeMap()
 {
-	return conSpecIBLCubeMap;
+	return conSpecIBLCubeMap.Get();
 }
 
 Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SkyMap::ReturnLookUpTexture()
 {
-	return brdfLookUpTexture;
+	return brdfLookUpTexture.Get();
 }
 
 int SkyMap::ReturnCalculatedMipLevels()
 {
-	return 0;
+	return calculatedMipLevels;
 }
 
 void SkyMap::IBLCreateIrradianceMap(SimpleVertexShader* fullscreenVS, SimplePixelShader* irradiancePS)
@@ -247,15 +247,35 @@ void SkyMap::IBLCreateConvolvedSpecularMap(SimpleVertexShader* fullscreenVS, Sim
 
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	//Setup Shaders
+
 	fullscreenVS->SetShader();
 	specularConPS->SetShader();
 	specularConPS->SetShaderResourceView("EnviromentMap", cubeSRV.Get());
 	specularConPS->SetSamplerState("BasicSampler", samplerOptions.Get());
 
+	//Loop and render convolution
+
 	for (int currentMip = 0; currentMip < calculatedMipLevels; currentMip++)
 	{
 		for (int face = 0; face < 6; face++)
 		{
+			// Make a render target view for this face
+			D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+			rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;	// This points to a Texture2D Array
+			rtvDesc.Texture2DArray.ArraySize = 1;			// How much of the array do we have access to?
+			rtvDesc.Texture2DArray.FirstArraySlice = face;	// Which texture are we rendering into?
+			rtvDesc.Texture2DArray.MipSlice = currentMip;			// Which mip of that texture are we rendering into?
+			rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	// Same format as accum texture
+
+			Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtv;
+			device->CreateRenderTargetView(conSpecMapFinalTexture.Get(), &rtvDesc, rtv.GetAddressOf());
+
+			// Clear and set this render target
+			float black[4] = {}; // Initialize to all zeroes
+			context->ClearRenderTargetView(rtv.Get(), black);
+			context->OMSetRenderTargets(1, rtv.GetAddressOf(), 0);
+
 			D3D11_VIEWPORT vp = {};
 			vp.Width = (float)pow(2, calculatedMipLevels + mipToSkip - 1 - currentMip);
 			vp.Height = vp.Width;
@@ -334,6 +354,14 @@ void SkyMap::IBLCreateBRDFLookUpTexture(SimpleVertexShader* fullscreenVS, Simple
 	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	rtvDesc.Texture2D.MipSlice = 0;
 	rtvDesc.Format = texDesc.Format;
+
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtv;
+	device->CreateRenderTargetView(lookUpFinalTexture.Get(), &rtvDesc, rtv.GetAddressOf());
+
+	// Clear and set this render target
+	float black[4] = {}; // Initialize to all zeroes
+	context->ClearRenderTargetView(rtv.Get(), black);
+	context->OMSetRenderTargets(1, rtv.GetAddressOf(), 0);
 
 	//Fullscreen triangle render
 	context->Draw(3, 0);

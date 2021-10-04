@@ -11,7 +11,7 @@ cbuffer data : register(b0)
 	int mipLevel;
 }
 
-struct VertexToPixelSC
+struct VertexToPixel
 {
 	float4 position		: SV_POSITION;
 	float2 uv           : TEXCOORD0;
@@ -65,7 +65,7 @@ float3 ConvolveTextureCube(float roughness, float3 R)
 
 
 
-float4 main(VertexToPixelSC input) : SV_TARGET
+float4 main(VertexToPixel input) : SV_TARGET
 {
 	// Get a -1 to 1 range on x/y
 	float2 o = input.uv * 2 - 1;

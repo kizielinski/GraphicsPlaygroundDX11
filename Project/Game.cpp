@@ -63,6 +63,8 @@ Game::Game(HINSTANCE hInstance)
 	lightCounter = 0;
 	currentIndex = -1;
 
+	spaceSceneEnabled = false;
+
 	light = Light();
 	upward = Light();
 	grey = Light();
@@ -89,16 +91,24 @@ Game::~Game()
 	// we don't need to explicitly clean up those DirectX objects
 	// - If we weren't using smart pointers, we'd need
 	//   to call Release() on each DirectX object created in Game
-	/*for (int i = 0; i < myMeshes.size(); i++)
+	liveEntities.clear();
+	for (int i = 0; i < liveEntities.size(); i++)
 	{
-		delete myMeshes[i];
-	}*/
+		liveEntities[i]->GetMaterial()->ClearMaterial();
+		liveEntities[i]->GetMesh().reset();
+		delete liveEntities[i];
+	}
 	
 	delete camera;
 	delete vertexShader;
 	delete pixelShader;	
 	delete pixelSkyShader;
 	delete vertexSkyShader;
+	delete fullscreenVS;
+	delete irradiancePS;
+	delete specularConvoledPS;
+	delete lookUpTexturePS;
+	delete currentRender;
 	delete tempEntity;
 	
 	camera = nullptr;
@@ -106,6 +116,11 @@ Game::~Game()
 	pixelShader = nullptr;
 	vertexSkyShader = nullptr;
 	pixelSkyShader = nullptr;
+	fullscreenVS = nullptr;
+	irradiancePS = nullptr;
+	specularConvoledPS = nullptr;
+	lookUpTexturePS = nullptr;
+	currentRender = nullptr;
 	tempEntity = nullptr;
 }
 
@@ -150,15 +165,7 @@ void Game::Init()
 	LoadLighting();
 	LoadShaders();
 
-	//Because of the way my program works (regarding browsing loading and reloading asssets) I need the renderer to be in front of everything, not after it.
-
-	baseData.meshPath = "../../Assets/sphere.obj";
-	baseData.albedoPath = L"../../Assets/Sun/Sun.jpg";
-	baseData.normalPath = L"../../Assets/Sun/SunN2.png";
-	baseData.roughPath = L"../../Assets/Sun/SunR.png";
-	baseData.metalPath = L"../../Assets/Sun/SunM.png";
-
-	wstring baseSky = L"../../Assets/CubeMapTextures/SpaceMap.dds";
+	wstring baseSky = L"../../Assets/CubeMapTextures/SunMap.dds";
 	LoadCubeMap(baseSky);
 
 	//My implementation takes into account each newly created object, so the renderer must be initialized fist and then updated with each new entity.
@@ -347,19 +354,24 @@ void Game::LoadCubeMap(wstring customSky)
 	sky = new SkyMap(mesh1, sampler, device, context, spaceMapSRV, pixelSkyShader, vertexSkyShader, fullscreenVS, irradiancePS, specularConvoledPS, lookUpTexturePS);
 }
 
-// --------------------------------------------------------
-// Compressed down to a few initial lines.
-// --------------------------------------------------------
-void Game::CreateBasicGeometry()
+void Game::CreateSpaceScene()
 {
+	spaceSceneEnabled = true;
+
 	//Setup the Sun
+	baseData.meshPath = "../../Assets/sphere.obj";
+	baseData.albedoPath = L"../../Assets/Sun/Sun.jpg";
+	baseData.normalPath = L"../../Assets/Sun/SunN2.png";
+	baseData.roughPath = L"../../Assets/Sun/SunR.png";
+	baseData.metalPath = L"../../Assets/Sun/SunM.png";
+
 	CreateEntity(baseData);
-	
+
 	//Setup the Earth
 	baseData.meshPath = "../../Assets/sphere.obj";
 	baseData.albedoPath = L"../../Assets/Earth/Earth.png";
 	baseData.normalPath = L"../../Assets/Earth/EarthN.png";
-    baseData.roughPath = L"../../Assets/Earth/EarthR.png";
+	baseData.roughPath = L"../../Assets/Earth/EarthR.png";
 	baseData.metalPath = L"../../Assets/Earth/EarthM.png";
 	CreateEntity(baseData);
 	liveEntities[0]->GetTransform()->AddChild(liveEntities[1]->GetTransform());
@@ -424,6 +436,57 @@ void Game::CreateBasicGeometry()
 		liveEntities[4]->GetGraphicDataStruct(),
 		liveEntities[4]->GetPositionDataStruct()
 	);
+}
+
+void Game::CreateIBLScene()
+{
+	baseData.meshPath = "../../Assets/sphere.obj";
+	baseData.albedoPath = L"../../Assets/defaultTextures/bronze_albedo.png";
+	baseData.normalPath = L"../../Assets/defaultTextures/bronze_normals.png";
+	baseData.roughPath = L"../../Assets/defaultTextures/bronze_roughness.png";
+	baseData.metalPath = L"../../Assets/defaultTextures/bronze_metal.png";
+
+	CreateEntity(baseData);
+
+	EntityPosition firstPosition = { -3, 0, 0 };
+	liveEntities[0]->SetPositionDataStruct(firstPosition);
+	liveEntities[0]->GetTransform()->SetPosition(firstPosition.X, firstPosition.Y, firstPosition.Z);
+	
+	baseData.meshPath = "../../Assets/sphere.obj";
+	baseData.albedoPath = L"../../Assets/defaultTextures/bronze_albedo.png";
+	baseData.normalPath = L"../../Assets/defaultTextures/bronze_normals.png";
+	baseData.roughPath = L"../../Assets/defaultTextures/bronze_roughness.png";
+	baseData.metalPath = L"../../Assets/defaultTextures/bronze_metal.png";
+
+	CreateEntity(baseData);
+
+	EntityPosition secondPosition = { 0, 0, 0 };
+	liveEntities[1]->SetPositionDataStruct(secondPosition);
+	liveEntities[1]->GetTransform()->SetPosition(secondPosition.X, secondPosition.Y, secondPosition.Z);
+
+	baseData.meshPath = "../../Assets/sphere.obj";
+	baseData.albedoPath = L"../../Assets/defaultTextures/bronze_albedo.png";
+	baseData.normalPath = L"../../Assets/defaultTextures/bronze_normals.png";
+	baseData.roughPath = L"../../Assets/defaultTextures/bronze_roughness.png";
+	baseData.metalPath = L"../../Assets/defaultTextures/bronze_metal.png";
+
+	CreateEntity(baseData);
+
+	EntityPosition thirdPosition = { 3, 0, 0 };
+	liveEntities[2]->SetPositionDataStruct(thirdPosition);
+	liveEntities[2]->GetTransform()->SetPosition(thirdPosition.X, thirdPosition.Y, thirdPosition.Z);
+
+	entityWindow.SetCurrentEntity(
+		liveEntities[2]->GetDataStruct(),
+		liveEntities[2]->GetGraphicDataStruct(),
+		liveEntities[2]->GetPositionDataStruct()
+	);
+}
+
+void Game::CreateBasicGeometry()
+{
+	//CreateSpaceScene();
+	CreateIBLScene();
 }
 
 void Game::CreateEntity(GraphicData newData)
@@ -644,13 +707,16 @@ void Game::Update(float deltaTime, float totalTime)
 {
 	HandleUIActions();
 
-	liveEntities[0]->GetTransform()->Rotate(0, 0.003f, 0);
-	liveEntities[1]->GetTransform()->Rotate(0, 0.001f, 0);
-	liveEntities[2]->GetTransform()->Rotate(0.0003f, 0.0003f, 0);
-	liveEntities[3]->GetTransform()->Rotate(0.001f, 0.002f , 0);
-	float temp = (XMScalarCos(1.6f)+1)/8;
+	if (spaceSceneEnabled)
+	{
+		liveEntities[0]->GetTransform()->Rotate(0, 0.003f, 0);
+		liveEntities[1]->GetTransform()->Rotate(0, 0.001f, 0);
+		liveEntities[2]->GetTransform()->Rotate(0.0003f, 0.0003f, 0);
+		liveEntities[3]->GetTransform()->Rotate(0.001f, 0.002f, 0);
+		float temp = (XMScalarCos(1.6f) + 1) / 8;
 
-	liveEntities[3]->GetTransform()->SetScale(temp, temp, temp);
+		liveEntities[3]->GetTransform()->SetScale(temp, temp, temp);
+	}
 	//currentRender.Update(deltaTime, totalTime);
 	camera->Update(deltaTime, this->hWnd);
 }

@@ -50,6 +50,8 @@ private:
 	//void SetUpLights();
 	//void SetUpLightsNormal();
 	void CreateBasicGeometry();
+	void CreateSpaceScene();
+	void CreateIBLScene();
 	void CreateEntity(GraphicData newData);
 	void EstablishNewEntityData(GraphicData newData);
 	void EstablishNewLightData();
@@ -138,5 +140,7 @@ private:
 
 	//Camera for our 3D Scene
 	Camera* camera;
-};
 
+	//Current Active Scnee (controls transformations etc.)
+	bool spaceSceneEnabled;
+};

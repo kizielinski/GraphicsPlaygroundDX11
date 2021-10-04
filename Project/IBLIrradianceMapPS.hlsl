@@ -8,7 +8,7 @@ cbuffer externalData : register(b0)
 };
 
 
-struct VertexToPixelIBL
+struct VertexToPixel
 {
 	float4 position		: SV_POSITION;
 	float2 uv           : TEXCOORD0;
@@ -19,7 +19,7 @@ TextureCube EnvironmentMap	: register(t0);
 SamplerState BasicSampler	: register(s0);
 
 // http://www.codinglabs.net/article_physically_based_rendering.aspx
-float4 main(VertexToPixelIBL input) : SV_TARGET
+float4 main(VertexToPixel input) : SV_TARGET
 {
 	// Get a -1 to 1 range on x/y
 	float2 o = input.uv * 2 - 1;

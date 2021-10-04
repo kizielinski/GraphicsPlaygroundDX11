@@ -23,7 +23,6 @@ Renderer::Renderer(
 	depthBufferDSV = _depthBufferDSV;
 	windowWidth = _windowWidth;
 	windowHeight = _windowHeight;
-	myEntities = _entities;
 	currentIndex = -1;
 	mySkyBox = _sky;
 
@@ -35,11 +34,6 @@ Renderer::Renderer(
 
 Renderer::~Renderer()
 {
-	for (int i = 0; i < myEntities.size(); i++)
-	{
-		myEntities[i] = nullptr;
-	}
-
 	delete mySkyBox;
 	mySkyBox = nullptr;
 
@@ -58,6 +52,7 @@ void Renderer::Order()
 //Render all lights and objects in one go.
 void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindow* eW, HWND windowHandle)
 {
+	SimplePixelShader* temp;
 	//Once per frame, you're resetting the window
 	// Background color (Cornflower Blue in this case) for clearing
 	const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
@@ -67,20 +62,21 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
 		1.0f,
 		0);
-	
-	pixelShader->SetInt("SpecIBLTotalMipLevels", mySkyBox->ReturnCalculatedMipLevels());
-	pixelShader->SetShaderResourceView("BrdfLookUpMap", mySkyBox->ReturnLookUpTexture());
-	pixelShader->SetShaderResourceView("IrradianceIBLMap", mySkyBox->ReturnIrradianceCubeMap());
-	pixelShader->SetShaderResourceView("SpecularIBLMap", mySkyBox->ReturnConvolvedSpecularCubeMap());
 
 	DrawPointLights(cam);
 
 	for (int i = 0; i < entities.size(); i++)
 	{
+		temp = entities[i]->GetMaterial()->GetPixelShader();
+		temp->SetInt("SpecIBLTotalMipLevels", mySkyBox->ReturnCalculatedMipLevels());
+		temp->SetShaderResourceView("BrdfLookUpMap", mySkyBox->ReturnLookUpTexture());
+		temp->SetShaderResourceView("IrradianceIBLMap", mySkyBox->ReturnIrradianceCubeMap());
+		temp->SetShaderResourceView("SpecularIBLMap", mySkyBox->ReturnConvolvedSpecularCubeMap());
 		entities[i]->DrawEntity(context, cam);
 	}
 
 	mySkyBox->SkyDraw(context.Get(), cam);
+
 
 	eW->DisplayWindow(windowHandle, windowWidth, windowHeight);
 
@@ -164,11 +160,11 @@ void Renderer::SetUpLights(Camera* cam)
 void Renderer::LoadLighting()
 {
 	//New light intialization
-	light.color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
+	light.color = DirectX::XMFLOAT3(0.9f, 0.9f, 0.9f);
 	light.intensity = 1.0f;
-	light.direction = DirectX::XMFLOAT3(1, 0, 0);
-	light.position = DirectX::XMFLOAT3(2, 4, 0);
-	light.lightType = 0;
+	light.direction = DirectX::XMFLOAT3(1, 1, 0);
+	light.position = DirectX::XMFLOAT3(0, 0, 0);
+	light.lightType = 1;
 
 	ambientColor = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
 }

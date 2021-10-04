@@ -16,13 +16,13 @@ cbuffer ExternalData : register(b0)
 // - Output is a single struct of data to pass down the pipeline
 // - Named "main" because that's the default the shader compiler looks for
 // --------------------------------------------------------
-VertexToPixel main( VertexShaderInput input )
+VertexToPixelMain main( VertexShaderInput input )
 {
 	//Normailize the normal field of input.
 	input.normal = normalize(input.normal);
 
 	// Set up output struct
-	VertexToPixel output;
+	VertexToPixelMain output;
 
 	matrix wvp = mul(projection, mul(view, world));
 

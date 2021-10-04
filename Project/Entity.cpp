@@ -14,8 +14,6 @@ Entity::Entity(Mesh* newMesh, Material* newMaterial, EntityDef newEntity, Graphi
 
 Entity::~Entity()
 {
-	//material->ClearMaterial();
-	//mesh.reset();
 }
 
 std::shared_ptr<Mesh> Entity::GetMesh()
@@ -33,11 +31,12 @@ void Entity::DrawEntity(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, Cam
 	{
 		material->GetPixelShader()->SetShaderResourceView("normalMapTexture", material->GetNormalMapSRV());
 	}
-
 	material->GetPixelShader()->SetShaderResourceView("metalMapTexture", material->MetalTexture()); 
 	material->GetPixelShader()->SetShaderResourceView("roughMapTexture", material->RoughTexture());
+
 	material->GetPixelShader()->SetSamplerState("basicSampler", material->GetSampleState());
 	material->GetPixelShader()->SetSamplerState("clampSampler", material->GetClampSampleState());
+
 
 	SimpleVertexShader* vs = material->GetVertexShader();
 	vs->SetFloat4("colorTint", material->GetColorTint());

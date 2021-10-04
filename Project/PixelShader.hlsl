@@ -30,15 +30,8 @@ TextureCube SpecularIBLMap : register(t6);
 SamplerState basicSampler : register(s0); // <- S for sampler register
 SamplerState clampSampler : register(s1);
 
-float4 main(VertexToPixel input) : SV_TARGET
+float4 main(VertexToPixelMain input) : SV_TARGET
 {
-	float3 albedo = pow(albedoTexture.Sample(basicSampler, input.uv).rgb, 2.2f);
-	float roughness = roughMapTexture.Sample(basicSampler, input.uv).r;
-	float metalness = metalMapTexture.Sample(basicSampler, input.uv).r;
-
-	//Specular color determination
-	float3 specularColor = lerp(F0_NON_METAL.rrr, albedo.rgb, metalness);
-
 	//float3 unpackedNormal = normalMapTexture.Sample(basicSampler, input.uv).rgb * 2 - 1;
 	//float3 Normal = normalize(input.normal); //Should be normalized, possible error by NMVS
 	//float3 Tangent = normalize(input.tangent); //Should be normalized, possible error by NMVS
@@ -47,16 +40,25 @@ float4 main(VertexToPixel input) : SV_TARGET
 	input.tangent = normalize(input.tangent);
 	input.normal = ComputeNormalMap(normalMapTexture, basicSampler, input.uv, input.normal, input.tangent);
 
-	//Test white light
-	float3 whiteLight = FinalValueCalculation(input.normal, input.worldPos, camPosition, light, albedo, specularIntensity, roughness, metalness, specularColor);
-	//float3 redLight = FinalValueCalculation(input.normal, input.worldPos, camPosition, diagonal, albedo, specularIntensity, roughness, metalness, specularColor);
+	float3 albedo = pow(albedoTexture.Sample(basicSampler, input.uv).rgb, 2.2f);
+	float roughness = roughMapTexture.Sample(basicSampler, input.uv).r;
+	float metalness = metalMapTexture.Sample(basicSampler, input.uv).r;
 
-	//Finalize color to output
-	//float3 finalLight = (redLight + ambientColor);
-	//float3 finalLight = (whiteLight + redLight) * albedo;
-	//float3 finalLight = (whiteLight + redLight) * albedo;
-	//float3 finalLight = (redLight) * albedo;
-	//float3 finalLight = whiteLight;
+	//Specular color determination
+	float3 specularColor = lerp(F0_NON_METAL.rrr, albedo.rgb, metalness);
+
+	//Test white light
+	float3 whiteLight = FinalValueCalculation(
+		input.normal, 
+		input.worldPos, 
+		camPosition, 
+		light, 
+		albedo, 
+		specularIntensity, 
+		roughness, 
+		metalness, 
+		specularColor);
+
 	float3 finalLight = float3(0, 0, 0);
 	
 	//!!!!!!!!!!!!!!!!!!! IBL Calculations !!!!!!!!!!!!!!!!!!!!
@@ -80,9 +82,18 @@ float4 main(VertexToPixel input) : SV_TARGET
 
 	float3 balancedDiff = DiffuseEnergyConserve(indirectDiffuse, indirectSpecular, metalness);
 	float3 fullIndirect = indirectSpecular + balancedDiff * albedo.rgb;
+
 	//! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	finalLight = whiteLight;
-	finalLight += fullIndirect;
+	
+	//finalLight = whiteLight;
+	//finalLight = normalMapTexture.Sample(basicSampler, input.uv).rgb;
+	//finalLight = roughMapTexture.Sample(basicSampler, input.uv).rgb;
+	//finalLight = metalMapTexture.Sample(basicSampler, input.uv).rgb;
+	//finalLight = input.normal;
+	//finalLight = BrdfLookUpMap.Sample(basicSampler, input.uv).rgb;
+	
+	finalLight = IrradianceIBLMap.Sample(basicSampler, input.normal).rgb;
+
 	/*for (int i = 0; i < 1; i++)
 	{
 		finalLight += FinalValueCalculation(

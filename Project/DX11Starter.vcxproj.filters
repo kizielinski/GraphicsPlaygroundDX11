@@ -178,7 +178,7 @@
     <FxCompile Include="IBLSpecularConvolutionsPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="IBLBrdfLookUpTablePS.hlsli">
+    <FxCompile Include="IBLBrdfLookUpTablePS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

@@ -4,19 +4,19 @@
 #define __GGP_SHADER_INCLUDES__
 
 
-struct DirectionalLight
-{
-	float3 Color       : COLOR;
-	float Intensity    : BLENDWEIGHT;
-	float3 Direction   : DIR;
-};
-
-struct DirectionalLightInput
-{
-	float3 color          : COLOR;
-	float intensity       : BLENDWEIGHT;
-	float3 direction      : POSITION;
-};
+//struct DirectionalLight
+//{
+//	float3 Color       : COLOR;
+//	float Intensity    : BLENDWEIGHT;
+//	float3 Direction   : DIR;
+//};
+//
+//struct DirectionalLightInput
+//{
+//	float3 color          : COLOR;
+//	float intensity       : BLENDWEIGHT;
+//	float3 direction      : POSITION;
+//};
 
 #define LIGHT_DIRECTIONAL	0
 #define LIGHT_POINT		    1
@@ -45,7 +45,7 @@ struct VertexShaderInput
 };
 
 // Struct representing the data we're sending down the pipeline
-struct VertexToPixel
+struct VertexToPixelMain
 {
 	// Data type
 	//  |
@@ -60,20 +60,20 @@ struct VertexToPixel
 	float3 tangent      : TANGENT;
 };
 
-struct VertexToPixelNormalSupport
-{
-	// Data type
-	//  |
-	//  |   Name          Semantic
-	//  |    |                |
-	//  v    v                v
-	float4 position		: SV_POSITION;	// XYZW position (System Value Position)
-	float4 color		: COLOR;
-	float2 uv		    : TEXCOORD;     // RG uv coordinate
-	float3 normal       : NORMAL;       // Normal coordinate
-	float3 worldPos     : POSITION;
-	float3 tangent      : TANGENT;
-};
+//struct VertexToPixelNormalSupport
+//{
+//	// Data type
+//	//  |
+//	//  |   Name          Semantic
+//	//  |    |                |
+//	//  v    v                v
+//	float4 position		: SV_POSITION;	// XYZW position (System Value Position)
+//	float4 color		: COLOR;
+//	float2 uv		    : TEXCOORD;     // RG uv coordinate
+//	float3 normal       : NORMAL;       // Normal coordinate
+//	float3 worldPos     : POSITION;
+//	float3 tangent      : TANGENT;
+//};
 
 struct VertexToPixelSky
 {
@@ -162,10 +162,13 @@ float3 FinalValueCalculation(float3 normal, float3 worldPos, float3 camPos, Ligh
 		diffPreBalance = DiffusePBR(normal, -tempLight.direction);
 		
 		spec = MicrofacetBRDF(normal, DirectionToLight(tempLight.direction), camPos, roughness, specColor);
-		
+		spec *= any(diffPreBalance);
+
 		balancedDiff = DiffuseEnergyConserve(diffPreBalance, spec, metalness);
 
-		finalColor = (balancedDiff*surfaceColor+spec)*tempLight.intensity * tempLight.color;
+		//finalColor = (balancedDiff*surfaceColor+spec)*tempLight.intensity * tempLight.color;
+		//finalColor = (balancedDiff * surfaceColor + spec);//*tempLight.intensity * tempLight.color;
+		finalColor = (balancedDiff + surfaceColor * spec);//*tempLight.intensity * tempLight.color;
 		break;
 
 		//Point Light
