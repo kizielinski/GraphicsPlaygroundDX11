@@ -31,8 +31,6 @@ public:
 	SimpleVertexShader* GetVertexShader();
 	DirectX::XMFLOAT4 GetColorTint();
 	float GetSpecularIntensity();
-	ID3D11ShaderResourceView* GetTextureSRV();
-	ID3D11ShaderResourceView* GetNormalMapSRV();
 	ID3D11SamplerState* GetSampleState();
 	ID3D11SamplerState* GetClampSampleState();
 	void SetColorTint(DirectX::XMFLOAT4 newTint);
@@ -42,6 +40,12 @@ public:
 	ID3D11ShaderResourceView* NormalTexture();
 	ID3D11ShaderResourceView* RoughTexture();
 	ID3D11ShaderResourceView* MetalTexture();
+	void CustomTextureSet(
+		ID3D11ShaderResourceView* albedo,
+		ID3D11ShaderResourceView* normal,
+		ID3D11ShaderResourceView* metal,
+		ID3D11ShaderResourceView* roughness);
+
 
 private:
 	DirectX::XMFLOAT4 cTint;

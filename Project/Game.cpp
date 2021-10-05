@@ -91,13 +91,17 @@ Game::~Game()
 	// we don't need to explicitly clean up those DirectX objects
 	// - If we weren't using smart pointers, we'd need
 	//   to call Release() on each DirectX object created in Game
-	liveEntities.clear();
-	for (int i = 0; i < liveEntities.size(); i++)
+	
+	/*for (int i = 0; i < liveEntities.size(); i++)
 	{
 		liveEntities[i]->GetMaterial()->ClearMaterial();
 		liveEntities[i]->GetMesh().reset();
 		delete liveEntities[i];
-	}
+	}*/
+	liveEntities.clear();
+
+	myMeshes.clear();
+	staticColors.clear();
 	
 	delete camera;
 	delete vertexShader;
@@ -110,6 +114,8 @@ Game::~Game()
 	delete lookUpTexturePS;
 	delete currentRender;
 	delete tempEntity;
+	delete sky;
+	delete newSRV;
 	
 	camera = nullptr;
 	vertexShader = nullptr;
@@ -122,6 +128,8 @@ Game::~Game()
 	lookUpTexturePS = nullptr;
 	currentRender = nullptr;
 	tempEntity = nullptr;
+	sky = nullptr;
+	newSRV = nullptr;
 }
 
 // --------------------------------------------------------
@@ -141,9 +149,6 @@ void Game::Init()
 	//Intialize Window
 	testWindow = UIWindow();
 	entityWindow = EntityWindow();
-
-	//Helper method to load textures
-	LoadDefaultTextures();
 
 	//Initialize sampler state
 	D3D11_SAMPLER_DESC sampDescription = {};
@@ -299,12 +304,6 @@ void Game::DecrementCurrentEntity()
 	currentRender->SetCurrentIndex(currentIndex);
 }
 
-//Depricated
-void Game::LoadDefaultTextures()
-{
-	
-}
-
 void Game::LoadTextures(GraphicData newData)
 {
 	inputAlbedo.Detach();
@@ -347,11 +346,23 @@ void Game::LoadCubeMap(wstring customSky)
 		device.Get(),
 		GetFullPathTo_Wide(customSky).c_str(),
 		0,
-		spaceMapSRV.GetAddressOf()
+		skyMapSRV.GetAddressOf()
 	);
 
 	Mesh* mesh1 = new Mesh(GetFullPathTo("../../Assets/cube.obj").c_str(), device); 
-	sky = new SkyMap(mesh1, sampler, device, context, spaceMapSRV, pixelSkyShader, vertexSkyShader, fullscreenVS, irradiancePS, specularConvoledPS, lookUpTexturePS);
+	sky = new SkyMap(mesh1, sampler, device, context, skyMapSRV, pixelSkyShader, vertexSkyShader, fullscreenVS, irradiancePS, specularConvoledPS, lookUpTexturePS);
+}
+
+void Game::ChangeCubeMap(wstring newSky)
+{
+	CreateDDSTextureFromFile(
+		device.Get(),
+		GetFullPathTo_Wide(newSky).c_str(),
+		0,
+		skyMapSRV.GetAddressOf()
+	);
+
+	sky->RefreshSkyMap(skyMapSRV, fullscreenVS, irradiancePS, specularConvoledPS, lookUpTexturePS);
 }
 
 void Game::CreateSpaceScene()
@@ -441,46 +452,87 @@ void Game::CreateSpaceScene()
 void Game::CreateIBLScene()
 {
 	baseData.meshPath = "../../Assets/sphere.obj";
-	baseData.albedoPath = L"../../Assets/defaultTextures/bronze_albedo.png";
-	baseData.normalPath = L"../../Assets/defaultTextures/bronze_normals.png";
-	baseData.roughPath = L"../../Assets/defaultTextures/bronze_roughness.png";
-	baseData.metalPath = L"../../Assets/defaultTextures/bronze_metal.png";
+	baseData.albedoPath = L"../../Assets/defaultTextures/defaultAlbedo.png";
+	baseData.normalPath = L"../../Assets/defaultTextures/defaultNormal.png";
+	baseData.roughPath = L"../../Assets/defaultTextures/defaultRoughness.png";
+	baseData.metalPath = L"../../Assets/defaultTextures/defaultMetal_nonmetal.png";
 
-	CreateEntity(baseData);
+	//Creating all metal Objects
+	{
+		CreateEntity(baseData);
+		liveEntities[0]->GetMaterial()->CustomTextureSet(
+			CreateTexture((uint32_t)0xff0000ff).Get(),
+			CreateTexture((uint32_t)0x7f7fffff).Get(),
+			CreateTexture((uint32_t)0x00000000).Get(),
+			CreateTexture((uint32_t)0xffffff00).Get()
+		);
+		EntityPosition firstPosition = { -3, 0, 0 };
+		liveEntities[0]->SetPositionDataStruct(firstPosition);
+		liveEntities[0]->GetTransform()->SetPosition(firstPosition.X, firstPosition.Y, firstPosition.Z);
 
-	EntityPosition firstPosition = { -3, 0, 0 };
-	liveEntities[0]->SetPositionDataStruct(firstPosition);
-	liveEntities[0]->GetTransform()->SetPosition(firstPosition.X, firstPosition.Y, firstPosition.Z);
-	
-	baseData.meshPath = "../../Assets/sphere.obj";
-	baseData.albedoPath = L"../../Assets/defaultTextures/bronze_albedo.png";
-	baseData.normalPath = L"../../Assets/defaultTextures/bronze_normals.png";
-	baseData.roughPath = L"../../Assets/defaultTextures/bronze_roughness.png";
-	baseData.metalPath = L"../../Assets/defaultTextures/bronze_metal.png";
+		CreateEntity(baseData);
+		liveEntities[1]->GetMaterial()->CustomTextureSet(
+			CreateTexture((uint32_t)0xffffffff).Get(),
+			CreateTexture((uint32_t)0x7f7fffff).Get(),
+			CreateTexture((uint32_t)0xffffffff).Get(),
+			CreateTexture((uint32_t)0x404040ff).Get()
+		);
+		EntityPosition secondPosition = { 0, 0, 0 };
+		liveEntities[1]->SetPositionDataStruct(secondPosition);
+		liveEntities[1]->GetTransform()->SetPosition(secondPosition.X, secondPosition.Y, secondPosition.Z);
 
-	CreateEntity(baseData);
+		CreateEntity(baseData);
+		liveEntities[2]->GetMaterial()->CustomTextureSet(
+			CreateTexture((uint32_t)0xffffffff).Get(),
+			CreateTexture((uint32_t)0x7f7fffff).Get(),
+			CreateTexture((uint32_t)0xffffffff).Get(),
+			CreateTexture((uint32_t)0x808080ff).Get()
+		);
+		EntityPosition thirdPosition = { 3, 0, 0 };
+		liveEntities[2]->SetPositionDataStruct(thirdPosition);
+		liveEntities[2]->GetTransform()->SetPosition(thirdPosition.X, thirdPosition.Y, thirdPosition.Z);
+	}
+	//Creating all Matte Objects
+	{
+		CreateEntity(baseData);
+		liveEntities[3]->GetMaterial()->CustomTextureSet(
+			CreateTexture((uint32_t)0xffffffff).Get(),
+			CreateTexture((uint32_t)0x7f7fffff).Get(),
+			CreateTexture((uint32_t)0x00000000).Get(),
+			CreateTexture((uint32_t)0x808080ff).Get()
+		);
+		EntityPosition fourthPosition = { -3, -3, 0 };
+		liveEntities[3]->SetPositionDataStruct(fourthPosition);
+		liveEntities[3]->GetTransform()->SetPosition(fourthPosition.X, fourthPosition.Y, fourthPosition.Z);
 
-	EntityPosition secondPosition = { 0, 0, 0 };
-	liveEntities[1]->SetPositionDataStruct(secondPosition);
-	liveEntities[1]->GetTransform()->SetPosition(secondPosition.X, secondPosition.Y, secondPosition.Z);
+		CreateEntity(baseData);
+		liveEntities[4]->GetMaterial()->CustomTextureSet(
+			CreateTexture((uint32_t)0xffffffff).Get(),
+			CreateTexture((uint32_t)0x7f7fffff).Get(),
+			CreateTexture((uint32_t)0x00000000).Get(),
+			CreateTexture((uint32_t)0xC0C0C0ff).Get()
+		);
+		EntityPosition fifthPosition = { 0, -3, 0 };
+		liveEntities[4]->SetPositionDataStruct(fifthPosition);
+		liveEntities[4]->GetTransform()->SetPosition(fifthPosition.X, fifthPosition.Y, fifthPosition.Z);
 
-	baseData.meshPath = "../../Assets/sphere.obj";
-	baseData.albedoPath = L"../../Assets/defaultTextures/bronze_albedo.png";
-	baseData.normalPath = L"../../Assets/defaultTextures/bronze_normals.png";
-	baseData.roughPath = L"../../Assets/defaultTextures/bronze_roughness.png";
-	baseData.metalPath = L"../../Assets/defaultTextures/bronze_metal.png";
+		CreateEntity(baseData);
+		liveEntities[5]->GetMaterial()->CustomTextureSet(
+			CreateTexture((uint32_t)0xffffffff).Get(),
+			CreateTexture((uint32_t)0x7f7fffff).Get(),
+			CreateTexture((uint32_t)0x00000000).Get(),
+			CreateTexture((uint32_t)0xffffffff).Get()
+		);
+		EntityPosition sixthPosition = { 3, -3, 0 };
+		liveEntities[5]->SetPositionDataStruct(sixthPosition);
+		liveEntities[5]->GetTransform()->SetPosition(sixthPosition.X, sixthPosition.Y, sixthPosition.Z);
+		entityWindow.SetCurrentEntity(
+			liveEntities[5]->GetDataStruct(),
+			liveEntities[5]->GetGraphicDataStruct(),
+			liveEntities[5]->GetPositionDataStruct()
+		);
 
-	CreateEntity(baseData);
-
-	EntityPosition thirdPosition = { 3, 0, 0 };
-	liveEntities[2]->SetPositionDataStruct(thirdPosition);
-	liveEntities[2]->GetTransform()->SetPosition(thirdPosition.X, thirdPosition.Y, thirdPosition.Z);
-
-	entityWindow.SetCurrentEntity(
-		liveEntities[2]->GetDataStruct(),
-		liveEntities[2]->GetGraphicDataStruct(),
-		liveEntities[2]->GetPositionDataStruct()
-	);
+	}
 }
 
 void Game::CreateBasicGeometry()
@@ -546,60 +598,14 @@ void Game::UpdateGUIWindow()
 	);
 }
 
-//void Game::SetUpLights()
-//{
-//	pixelShader->SetData(
-//		"light",
-//		&light,
-//		sizeof(Light)
-//	);
-//
-//	pixelShader->SetData(
-//		"upward",
-//		&upward,
-//		sizeof(Light)
-//	);
-//
-//	pixelShader->SetData(
-//		"diagonal",
-//		&diagonal,
-//		sizeof(Light)
-//	);
-//
-//	pixelShader->SetData(
-//		"grey",
-//		&grey,
-//		sizeof(Light)
-//	);
-//
-//	pixelShader->SetFloat3("ambientColor", ambientColor);
-//
-//	pixelShader->SetFloat("specularIntensity", baseMaterial->GetSpecularIntensity());
-//
-//	pixelShader->SetFloat3("camPosition", camera->GetPosition());
-//}
-
-//void Game::SetUpLightsNormal()
-//{
-//	/*pixelShader->SetFloat3("ambientColor", ambientColor);
-//	pixelShader->SetFloat("specularIntensity", baseMaterial->GetSpecularIntensity());
-//
-//	pixelShader->SetData(
-//		"defaultLight",
-//		&defaultLight,
-//		sizeof(Light)
-//	);
-//
-//	pixelShader->SetFloat3("camPosition", camera->GetPosition());*/
-//}
-
-
 // --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.
 // For instance, updating our projection matrix's aspect ratio.
 // --------------------------------------------------------
 void Game::OnResize()
 {
+	currentRender->PreResize();
+
 	// Handle base-level DX resize stuff
 	DXCore::OnResize();
 
@@ -690,7 +696,7 @@ void Game::HandleUIActions()
 
 	if (entityWindow.CanApplySky())
 	{
-		LoadCubeMap(entityWindow.ReturnSkyPath());
+		ChangeCubeMap(entityWindow.ReturnSkyPath());
 		entityWindow.SkyApplied();
 	}
 
@@ -743,4 +749,41 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	//All the above condensed into renderer now.
 	currentRender->Render(deltaTime, totalTime, camera, &entityWindow, hWnd);
+}
+
+//This function is supposed to pass static color textures for displaying the IBL Scene
+//for some reason it falls out of scope and I really don't know why.
+Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Game::CreateTexture(uint32_t fourChannelColor)
+{
+	D3D11_SUBRESOURCE_DATA initData = { &fourChannelColor, sizeof(uint32_t), 0 };
+
+	//texture description
+	D3D11_TEXTURE2D_DESC desc;
+	desc.Width = 512;
+	desc.Height = 512;
+	desc.MipLevels = desc.ArraySize = 1;
+	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	desc.SampleDesc.Count = 1;
+	desc.Usage = D3D11_USAGE_DYNAMIC;
+	desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	desc.MiscFlags = 0;
+	
+	//create texture
+	ID3D11Texture2D* texture = NULL;
+	device->CreateTexture2D(&desc, &initData, &texture);
+	
+	//Format srv description
+	D3D11_SHADER_RESOURCE_VIEW_DESC newSRVDesc = {};
+	newSRVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	newSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	newSRVDesc.Texture2D.MipLevels = 1;
+	newSRVDesc.Texture2D.MostDetailedMip = 0;
+
+	//Write to srv
+    newSRV = nullptr;
+	staticColors.push_back(newSRV);
+	device->CreateShaderResourceView(texture, &newSRVDesc, &newSRV);
+
+	return newSRV;
 }

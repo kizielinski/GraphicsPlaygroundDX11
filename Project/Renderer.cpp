@@ -34,9 +34,6 @@ Renderer::Renderer(
 
 Renderer::~Renderer()
 {
-	delete mySkyBox;
-	mySkyBox = nullptr;
-
 	pixelShader = nullptr;
 	vertexShader = nullptr;
 }
@@ -116,6 +113,12 @@ int Renderer::ReturnCurrentEntityIndex()
 Entity Renderer::ReturnCurrentEntity()
 {
 	return *entities[currentIndex];
+}
+
+void Renderer::PreResize()
+{
+	backBufferRTV.Reset();
+	depthBufferDSV.Reset();
 }
 
 void Renderer::PostResize(unsigned int _windowWidth, unsigned int _windowHeight, Microsoft::WRL::ComPtr<ID3D11RenderTargetView> _backBufferRTV, Microsoft::WRL::ComPtr<ID3D11DepthStencilView> _depthBufferDSV)

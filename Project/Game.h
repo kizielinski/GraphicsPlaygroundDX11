@@ -44,11 +44,9 @@ private:
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void LoadLighting();
 	void LoadShaders();
-	void LoadDefaultTextures(); //Default objects we've been using all semester.
 	void LoadTextures(GraphicData newData);
 	void LoadCubeMap(wstring customSky);
-	//void SetUpLights();
-	//void SetUpLightsNormal();
+	void ChangeCubeMap(wstring newSky);
 	void CreateBasicGeometry();
 	void CreateSpaceScene();
 	void CreateIBLScene();
@@ -60,6 +58,8 @@ private:
 	void RemoveEntity(int index);
 	void IncrementCurrentEntity();
 	void DecrementCurrentEntity();
+	
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> CreateTexture(uint32_t fourChannelColor);
 
 	
 	// Note the usage of ComPtr below
@@ -85,7 +85,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
 
 	//Texture Resources
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> spaceMapSRV; 
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> skyMapSRV; 
 	
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> inputAlbedo;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> inputNormal;
@@ -143,4 +143,7 @@ private:
 
 	//Current Active Scnee (controls transformations etc.)
 	bool spaceSceneEnabled;
+
+	vector<ID3D11ShaderResourceView*> staticColors;
+	ID3D11ShaderResourceView* newSRV;
 };

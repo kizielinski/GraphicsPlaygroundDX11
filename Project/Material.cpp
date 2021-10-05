@@ -21,16 +21,22 @@ Material::Material(SimplePixelShader* pixelShader, SimpleVertexShader* vertexSha
 
 Material::~Material()
 {
+    pShader = nullptr;
+    vShader = nullptr;
+    sampler = nullptr;
+    clampSampler = nullptr;
+    textureSRV   = nullptr;
+    normalMapSRV = nullptr;
+    roughMapSRV  = nullptr;
+    metalMapSRV  = nullptr;   
 }
 
 void Material::ClearMaterial()
 {
-    textureSRV->Release();
+    /*textureSRV->Release();
     normalMapSRV->Release();
     roughMapSRV->Release();
-    metalMapSRV->Release();
-    sampler->Release();
-    clampSampler->Release();
+    metalMapSRV->Release();*/
 }
 
 SimplePixelShader* Material::GetPixelShader()
@@ -53,14 +59,24 @@ float Material::GetSpecularIntensity()
     return sIntensity;
 }
 
-ID3D11ShaderResourceView* Material::GetTextureSRV()
+ID3D11ShaderResourceView* Material::BaseTexture()
 {
     return textureSRV;
 }
 
-ID3D11ShaderResourceView* Material::GetNormalMapSRV()
+ID3D11ShaderResourceView* Material::NormalTexture()
 {
     return normalMapSRV;
+}
+
+ID3D11ShaderResourceView* Material::RoughTexture()
+{
+    return roughMapSRV;
+}
+
+ID3D11ShaderResourceView* Material::MetalTexture()
+{
+    return metalMapSRV;
 }
 
 ID3D11SamplerState* Material::GetSampleState()
@@ -86,23 +102,15 @@ void Material::InsertNewTexture(ID3D11ShaderResourceView* inputTexture, ID3D11Sh
     textureToChange = inputTexture;
 }
 
-ID3D11ShaderResourceView* Material::BaseTexture()
+void Material::CustomTextureSet(
+    ID3D11ShaderResourceView* albedo,
+    ID3D11ShaderResourceView* normal,
+    ID3D11ShaderResourceView* metal,
+    ID3D11ShaderResourceView* roughness)
 {
-    return textureSRV;
-}
-
-ID3D11ShaderResourceView* Material::NormalTexture()
-{
-    return normalMapSRV;
-}
-
-ID3D11ShaderResourceView* Material::RoughTexture()
-{
-    return roughMapSRV;
-}
-
-ID3D11ShaderResourceView* Material::MetalTexture()
-{
-    return metalMapSRV;
+    textureSRV = albedo;
+    normalMapSRV = normal;
+    metalMapSRV = metal;
+    roughMapSRV = roughness;
 }
 

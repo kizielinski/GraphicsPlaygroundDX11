@@ -13,7 +13,7 @@ public:
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> _samplerOptions, 
 		Microsoft::WRL::ComPtr<ID3D11Device> _device,
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> _context,
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>, 
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> _mapTexture, 
 		SimplePixelShader* _pSS, 
 		SimpleVertexShader* _vSS,
 		SimpleVertexShader* fullscreenVS,
@@ -29,6 +29,13 @@ public:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ReturnConvolvedSpecularCubeMap();
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ReturnLookUpTexture();
 	int ReturnCalculatedMipLevels();
+
+	void RefreshSkyMap(
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> newMap,
+		SimpleVertexShader* fullscreenVS,
+		SimplePixelShader* irradiancePS,
+		SimplePixelShader* specularConPS,
+		SimplePixelShader* lookUpTexturePS);
 
 
 private:

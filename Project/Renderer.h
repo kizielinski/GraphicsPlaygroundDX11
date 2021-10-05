@@ -29,12 +29,13 @@ public:
 	void Order();
 	void Render(float deltaTime, float totalTime, Camera* cam, EntityWindow* eW, HWND windowHandle);
 	void SetCurrentIndex(int index);
-	//void SetEntities();
 	void AddSkyBox(SkyMap* sM);
 	void AlterPosition(EntityPosition entityPos);
 	int EntitiesListSize();
 	int ReturnCurrentEntityIndex();
 	Entity ReturnCurrentEntity();
+
+	void PreResize();
 
 	void PostResize(
 		unsigned int windowWidth,
@@ -59,7 +60,6 @@ private:
 	unsigned int windowHeight;
 	const std::vector<Entity*>& entities;
 	const std::vector<Light>& lights;
-	std::vector<Entity*> myEntities;
 
 	SimplePixelShader* pixelShader;
 	SimpleVertexShader* vertexShader;

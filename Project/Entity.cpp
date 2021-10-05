@@ -26,10 +26,10 @@ void Entity::DrawEntity(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, Cam
 	material->GetVertexShader()->SetShader();
 	material->GetPixelShader()->SetShader();
 
-	material->GetPixelShader()->SetShaderResourceView("albedoTexture", material->GetTextureSRV());
-	if (material->GetNormalMapSRV() != nullptr)
+	material->GetPixelShader()->SetShaderResourceView("albedoTexture", material->BaseTexture());
+	if (material->NormalTexture() != nullptr)
 	{
-		material->GetPixelShader()->SetShaderResourceView("normalMapTexture", material->GetNormalMapSRV());
+		material->GetPixelShader()->SetShaderResourceView("normalMapTexture", material->NormalTexture());
 	}
 	material->GetPixelShader()->SetShaderResourceView("metalMapTexture", material->MetalTexture()); 
 	material->GetPixelShader()->SetShaderResourceView("roughMapTexture", material->RoughTexture());

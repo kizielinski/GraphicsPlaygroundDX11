@@ -7,7 +7,6 @@ cbuffer externalData : register(b0)
 	float sampleStepTheta;
 };
 
-
 struct VertexToPixel
 {
 	float4 position		: SV_POSITION;
@@ -27,9 +26,8 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// Tangent basis
 	float3 xDir, yDir, zDir;
 
-	int temp = abs(faceIndex);
 	// Figure out the z ("normal" of this pixel)
-	switch (temp)
+	switch (faceIndex)
 	{
 	default:
 	case 0: zDir = float3(+1, -o.y, -o.x); break;
@@ -51,6 +49,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 
 	// Variables for various sin/cos values
 	float sinT, cosT, sinP, cosP;
+
 
 	// Loop around the hemisphere (360 degrees)
 	for (float phi = 0.0f; phi < TWO_PI; phi += sampleStepPhi)

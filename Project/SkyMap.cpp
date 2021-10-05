@@ -50,18 +50,16 @@ SkyMap::SkyMap(
 	IBLCreateIrradianceMap(fullscreenVS, irradiancePS);
 	IBLCreateConvolvedSpecularMap(fullscreenVS, specularConPS);
 	IBLCreateBRDFLookUpTexture(fullscreenVS, lookUpTexturePS);
+
+	//irraIBLCubeMap.CopyTo(cubeSRV.GetAddressOf());
 }
 
 SkyMap::~SkyMap()
 {
 	delete skyMesh;
 	skyMesh = nullptr;
-	////Might not need
-	//delete pixelSkyShader;
-	//delete vertexSkyShader;
-	////!!!!!!
-	/*pixelSkyShader = nullptr;
-	vertexSkyShader = nullptr;*/
+	pixelSkyShader = nullptr;
+	vertexSkyShader = nullptr;
 }
 
 SimplePixelShader* SkyMap::GetPixelShader()
@@ -99,22 +97,35 @@ void SkyMap::SkyDraw(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, Camera
 
 Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SkyMap::ReturnIrradianceCubeMap()
 {
-	return irraIBLCubeMap.Get();
+	return irraIBLCubeMap;
 }
 
 Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SkyMap::ReturnConvolvedSpecularCubeMap()
 {
-	return conSpecIBLCubeMap.Get();
+	return conSpecIBLCubeMap;
 }
 
 Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SkyMap::ReturnLookUpTexture()
 {
-	return brdfLookUpTexture.Get();
+	return brdfLookUpTexture;
 }
 
 int SkyMap::ReturnCalculatedMipLevels()
 {
 	return calculatedMipLevels;
+}
+
+void SkyMap::RefreshSkyMap(
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> newMap,
+	SimpleVertexShader* fullscreenVS,
+	SimplePixelShader* irradiancePS,
+	SimplePixelShader* specularConPS,
+	SimplePixelShader* lookUpTexturePS)
+{
+	newMap.CopyTo(cubeSRV.GetAddressOf());
+	IBLCreateIrradianceMap(fullscreenVS, irradiancePS);
+	IBLCreateConvolvedSpecularMap(fullscreenVS, specularConPS);
+	IBLCreateBRDFLookUpTexture(fullscreenVS, lookUpTexturePS);
 }
 
 void SkyMap::IBLCreateIrradianceMap(SimpleVertexShader* fullscreenVS, SimplePixelShader* irradiancePS)
@@ -162,10 +173,10 @@ void SkyMap::IBLCreateIrradianceMap(SimpleVertexShader* fullscreenVS, SimplePixe
 	context->RSSetViewports(1, &vp);
 
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
+	
 	fullscreenVS->SetShader();
 	irradiancePS->SetShader();
-	irradiancePS->SetShaderResourceView("EnviromentMap", cubeSRV.Get());
+	irradiancePS->SetShaderResourceView("EnvironmentMap", cubeSRV.Get());
 	irradiancePS->SetSamplerState("BasicSampler", samplerOptions.Get());
 
 	for (int face = 0; face < 6; face++)
@@ -251,7 +262,7 @@ void SkyMap::IBLCreateConvolvedSpecularMap(SimpleVertexShader* fullscreenVS, Sim
 
 	fullscreenVS->SetShader();
 	specularConPS->SetShader();
-	specularConPS->SetShaderResourceView("EnviromentMap", cubeSRV.Get());
+	specularConPS->SetShaderResourceView("EnvironmentMap", cubeSRV.Get());
 	specularConPS->SetSamplerState("BasicSampler", samplerOptions.Get());
 
 	//Loop and render convolution

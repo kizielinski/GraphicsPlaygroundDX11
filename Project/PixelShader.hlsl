@@ -43,7 +43,8 @@ float4 main(VertexToPixelMain input) : SV_TARGET
 	float3 albedo = pow(albedoTexture.Sample(basicSampler, input.uv).rgb, 2.2f);
 	float roughness = roughMapTexture.Sample(basicSampler, input.uv).r;
 	float metalness = metalMapTexture.Sample(basicSampler, input.uv).r;
-
+	//float metalness = 0;
+	//float roughness = 1;
 	//Specular color determination
 	float3 specularColor = lerp(F0_NON_METAL.rrr, albedo.rgb, metalness);
 
@@ -60,6 +61,21 @@ float4 main(VertexToPixelMain input) : SV_TARGET
 		specularColor);
 
 	float3 finalLight = float3(0, 0, 0);
+
+	finalLight += whiteLight;
+	/*for (int i = 0; i < 1; i++)
+	{
+		finalLight += FinalValueCalculation(
+			input.normal,
+			input.worldPos,
+			camPosition,
+			lightList[i],
+			albedo,
+			specularIntensity,
+			roughness,
+			metalness,
+			specularColor);
+	}*/
 	
 	//!!!!!!!!!!!!!!!!!!! IBL Calculations !!!!!!!!!!!!!!!!!!!!
 	
@@ -85,28 +101,13 @@ float4 main(VertexToPixelMain input) : SV_TARGET
 
 	//! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	
-	//finalLight = whiteLight;
+	finalLight += fullIndirect;
+	//finalLight = albedoTexture.Sample(basicSampler, input.uv).rgb;
 	//finalLight = normalMapTexture.Sample(basicSampler, input.uv).rgb;
 	//finalLight = roughMapTexture.Sample(basicSampler, input.uv).rgb;
 	//finalLight = metalMapTexture.Sample(basicSampler, input.uv).rgb;
 	//finalLight = input.normal;
-	//finalLight = BrdfLookUpMap.Sample(basicSampler, input.uv).rgb;
-	
-	finalLight = IrradianceIBLMap.Sample(basicSampler, input.normal).rgb;
-
-	/*for (int i = 0; i < 1; i++)
-	{
-		finalLight += FinalValueCalculation(
-			input.normal, 
-			input.worldPos, 
-			camPosition, 
-			lightList[0], 
-			albedo, 
-			specularIntensity, 
-			roughness, 
-			metalness, 
-			specularColor);
-	}*/
+	//finalLight = BrdfLookUpMap.Sample(basicSampler, input.uv);
 
 	//Gamma Correction
 	return float4(pow(finalLight, 1.0f / 2.2f), 1);
