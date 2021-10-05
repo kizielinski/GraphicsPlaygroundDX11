@@ -144,6 +144,7 @@ private:
 	//Current Active Scnee (controls transformations etc.)
 	bool spaceSceneEnabled;
 
-	vector<ID3D11ShaderResourceView*> staticColors;
+	vector<Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> staticColors;
 	ID3D11ShaderResourceView* newSRV;
+	ID3D11ShaderResourceView* locationSRV;
 };

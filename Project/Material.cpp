@@ -102,12 +102,12 @@ void Material::InsertNewTexture(ID3D11ShaderResourceView* inputTexture, ID3D11Sh
     textureToChange = inputTexture;
 }
 
-void Material::CustomTextureSet(ID3D11ShaderResourceView srv, int srvIndex)
+void Material::CustomTextureSet(ID3D11ShaderResourceView* srv, int srvIndex)
 {
     switch (srvIndex)
     {
         case 0: textureSRV = srv;
-        break;
+            break;
         case 1: normalMapSRV = srv;
             break;
         case 2: metalMapSRV = srv;

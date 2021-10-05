@@ -115,7 +115,6 @@ Game::~Game()
 	delete currentRender;
 	delete tempEntity;
 	delete sky;
-	delete newSRV;
 	
 	camera = nullptr;
 	vertexShader = nullptr;
@@ -129,7 +128,6 @@ Game::~Game()
 	currentRender = nullptr;
 	tempEntity = nullptr;
 	sky = nullptr;
-	newSRV = nullptr;
 }
 
 // --------------------------------------------------------
@@ -461,39 +459,39 @@ void Game::CreateIBLScene()
 	
 		CreateEntity(baseData);
 		CreateTexture((uint32_t)0xff0000ff);
-		liveEntities[0]->GetMaterial()->CustomTextureSet(newSRV, 0);
+		liveEntities[0]->GetMaterial()->CustomTextureSet(locationSRV, 0);
 		CreateTexture((uint32_t)0x7f7fffff);
-		liveEntities[0]->GetMaterial()->CustomTextureSet(newSRV, 1);
+		liveEntities[0]->GetMaterial()->CustomTextureSet(locationSRV, 1);
 		CreateTexture((uint32_t)0x00000000);
-		liveEntities[0]->GetMaterial()->CustomTextureSet(newSRV, 2);
+		liveEntities[0]->GetMaterial()->CustomTextureSet(locationSRV, 2);
 		CreateTexture((uint32_t)0xffffff00);
-		liveEntities[0]->GetMaterial()->CustomTextureSet(newSRV, 3);
+		liveEntities[0]->GetMaterial()->CustomTextureSet(locationSRV, 3);
 		EntityPosition firstPosition = { -3, 0, 0 };
 		liveEntities[0]->SetPositionDataStruct(firstPosition);
 		liveEntities[0]->GetTransform()->SetPosition(firstPosition.X, firstPosition.Y, firstPosition.Z);
 
 		CreateEntity(baseData);
 			CreateTexture((uint32_t)0xffffffff);
-			liveEntities[1]->GetMaterial()->CustomTextureSet(newSRV, 0);
+			liveEntities[1]->GetMaterial()->CustomTextureSet(locationSRV, 0);
 			CreateTexture((uint32_t)0x7f7fffff);
-			liveEntities[1]->GetMaterial()->CustomTextureSet(newSRV, 1);
+			liveEntities[1]->GetMaterial()->CustomTextureSet(locationSRV, 1);
 			CreateTexture((uint32_t)0xffffffff);
-			liveEntities[1]->GetMaterial()->CustomTextureSet(newSRV, 2);
+			liveEntities[1]->GetMaterial()->CustomTextureSet(locationSRV, 2);
 			CreateTexture((uint32_t)0x404040ff);
-			liveEntities[1]->GetMaterial()->CustomTextureSet(newSRV, 3);
+			liveEntities[1]->GetMaterial()->CustomTextureSet(locationSRV, 3);
 		EntityPosition secondPosition = { 0, 0, 0 };
 		liveEntities[1]->SetPositionDataStruct(secondPosition);
 		liveEntities[1]->GetTransform()->SetPosition(secondPosition.X, secondPosition.Y, secondPosition.Z);
 
 		CreateEntity(baseData);
 			CreateTexture((uint32_t)0xffffffff);
-			liveEntities[2]->GetMaterial()->CustomTextureSet(newSRV, 0);
+			liveEntities[2]->GetMaterial()->CustomTextureSet(locationSRV, 0);
 			CreateTexture((uint32_t)0x7f7fffff);
-			liveEntities[2]->GetMaterial()->CustomTextureSet(newSRV, 1);
+			liveEntities[2]->GetMaterial()->CustomTextureSet(locationSRV, 1);
 			CreateTexture((uint32_t)0xffffffff);
-			liveEntities[2]->GetMaterial()->CustomTextureSet(newSRV, 2);
+			liveEntities[2]->GetMaterial()->CustomTextureSet(locationSRV, 2);
 			CreateTexture((uint32_t)0x808080ff);
-			liveEntities[2]->GetMaterial()->CustomTextureSet(newSRV, 3);
+			liveEntities[2]->GetMaterial()->CustomTextureSet(locationSRV, 3);
 		EntityPosition thirdPosition = { 3, 0, 0 };
 		liveEntities[2]->SetPositionDataStruct(thirdPosition);
 		liveEntities[2]->GetTransform()->SetPosition(thirdPosition.X, thirdPosition.Y, thirdPosition.Z);
@@ -502,39 +500,39 @@ void Game::CreateIBLScene()
 	
 		CreateEntity(baseData);
 			CreateTexture((uint32_t)0xffffffff);
-			liveEntities[3]->GetMaterial()->CustomTextureSet(newSRV, 0);
-			CreateTexture((uint32_t)0x7f7fffff);
-			liveEntities[3]->GetMaterial()->CustomTextureSet(newSRV, 1);
-			CreateTexture((uint32_t)0x00000000);
-			liveEntities[3]->GetMaterial()->CustomTextureSet(newSRV, 2);
-			CreateTexture((uint32_t)0x808080ff);
-			liveEntities[3]->GetMaterial()->CustomTextureSet(newSRV, 3);
+			liveEntities[3]->GetMaterial()->CustomTextureSet(locationSRV, 0);
+			CreateTexture((uint32_t)0x7f7fffff);			 
+			liveEntities[3]->GetMaterial()->CustomTextureSet(locationSRV, 1);
+			CreateTexture((uint32_t)0x00000000);			 
+			liveEntities[3]->GetMaterial()->CustomTextureSet(locationSRV, 2);
+			CreateTexture((uint32_t)0x808080ff);			
+			liveEntities[3]->GetMaterial()->CustomTextureSet(locationSRV, 3);
 		EntityPosition fourthPosition = { -3, -3, 0 };
 		liveEntities[3]->SetPositionDataStruct(fourthPosition);
 		liveEntities[3]->GetTransform()->SetPosition(fourthPosition.X, fourthPosition.Y, fourthPosition.Z);
 
 		CreateEntity(baseData);
 			CreateTexture((uint32_t)0xffffffff);
-			liveEntities[4]->GetMaterial()->CustomTextureSet(newSRV, 0);
-			CreateTexture((uint32_t)0x7f7fffff);
-			liveEntities[4]->GetMaterial()->CustomTextureSet(newSRV, 1);
-			CreateTexture((uint32_t)0x00000000);
-			liveEntities[4]->GetMaterial()->CustomTextureSet(newSRV, 2);
-			CreateTexture((uint32_t)0xC0C0C0ff);
-			liveEntities[4]->GetMaterial()->CustomTextureSet(newSRV, 3);
+			liveEntities[4]->GetMaterial()->CustomTextureSet(locationSRV, 0);
+			CreateTexture((uint32_t)0x7f7fffff);			 
+			liveEntities[4]->GetMaterial()->CustomTextureSet(locationSRV, 1);
+			CreateTexture((uint32_t)0x00000000);			 
+			liveEntities[4]->GetMaterial()->CustomTextureSet(locationSRV, 2);
+			CreateTexture((uint32_t)0xC0C0C0ff);			 
+			liveEntities[4]->GetMaterial()->CustomTextureSet(locationSRV, 3);
 		EntityPosition fifthPosition = { 0, -3, 0 };
 		liveEntities[4]->SetPositionDataStruct(fifthPosition);
 		liveEntities[4]->GetTransform()->SetPosition(fifthPosition.X, fifthPosition.Y, fifthPosition.Z);
 
 		CreateEntity(baseData);
 			CreateTexture((uint32_t)0xffffffff);
-			liveEntities[5]->GetMaterial()->CustomTextureSet(newSRV, 0);
-			CreateTexture((uint32_t)0x7f7fffff);
-			liveEntities[5]->GetMaterial()->CustomTextureSet(newSRV, 1);
+			liveEntities[5]->GetMaterial()->CustomTextureSet(locationSRV, 0);
+			CreateTexture((uint32_t)0x7f7fffff);			 
+			liveEntities[5]->GetMaterial()->CustomTextureSet(locationSRV, 1);
+			CreateTexture((uint32_t)0x00000000);			 
+			liveEntities[5]->GetMaterial()->CustomTextureSet(locationSRV, 2);
 			CreateTexture((uint32_t)0x00000000);
-			liveEntities[5]->GetMaterial()->CustomTextureSet(newSRV, 2);
-			CreateTexture((uint32_t)0xffffffff);
-			liveEntities[5]->GetMaterial()->CustomTextureSet(newSRV, 3);
+			liveEntities[5]->GetMaterial()->CustomTextureSet(locationSRV, 3);
 		EntityPosition sixthPosition = { 3, -3, 0 };
 		liveEntities[5]->SetPositionDataStruct(sixthPosition);
 		liveEntities[5]->GetTransform()->SetPosition(sixthPosition.X, sixthPosition.Y, sixthPosition.Z);
@@ -765,21 +763,23 @@ void Game::Draw(float deltaTime, float totalTime)
 
 //This function is supposed to pass static color textures for displaying the IBL Scene
 //for some reason it falls out of scope and I really don't know why.
-void Game::CreateTexture(uint32_t fourChannelColor)
+void Game::CreateTexture(const uint32_t fourChannelColor)
 {
+	static const uint32_t s_pixel = 0xffc99aff;
 	D3D11_SUBRESOURCE_DATA initData = { &fourChannelColor, sizeof(uint32_t), 0 };
 
 	//texture description
-	D3D11_TEXTURE2D_DESC desc;
-	desc.Width = 512;
-	desc.Height = 512;
-	desc.MipLevels = desc.ArraySize = 1;
+	D3D11_TEXTURE2D_DESC desc = {};
+	desc.Width = desc.Height = 6;
+	desc.MipLevels = 1;
+	desc.ArraySize = 1;
 	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	desc.SampleDesc.Count = 1;
-	desc.Usage = D3D11_USAGE_DYNAMIC;
-	desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	desc.MiscFlags = 0;
+	desc.Usage = D3D11_USAGE_IMMUTABLE;
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	//Figured out the issue, had desc.CPUAcessFlag as writable since i stole it from
+	//one of the other shaders. Do NOT do that if you want hr to succeed. Nothing will 
+	//be written to the comptr texture if the Cpu can write as part of the access flag.
 	
 	//create texture
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture = NULL;
@@ -795,13 +795,14 @@ void Game::CreateTexture(uint32_t fourChannelColor)
 		newSRVDesc.Texture2D.MipLevels = 1;
 		newSRVDesc.Texture2D.MostDetailedMip = 0;
 
-		//Write to srv
-		/*newSRV = nullptr;
-		staticColors.push_back(newSRV);*/
 		hr = device->CreateShaderResourceView(texture.Get(), &newSRVDesc, &newSRV);
+		staticColors.push_back(newSRV);
+		locationSRV = staticColors[staticColors.size() - 1].Get();
+		newSRV = nullptr;
+		newSRV = (ID3D11ShaderResourceView*) malloc(sizeof(ID3D11ShaderResourceView));
 	}
 	if (FAILED(hr))
 	{
-		//Throw some type of error, i"ll look into it.
+		std::cout << hr << std::endl;
 	}
 }
