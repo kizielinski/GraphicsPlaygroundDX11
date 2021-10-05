@@ -59,7 +59,7 @@ private:
 	void IncrementCurrentEntity();
 	void DecrementCurrentEntity();
 	
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> CreateTexture(uint32_t fourChannelColor);
+	void CreateTexture(uint32_t fourChannelColor);
 
 	
 	// Note the usage of ComPtr below

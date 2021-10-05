@@ -40,11 +40,7 @@ public:
 	ID3D11ShaderResourceView* NormalTexture();
 	ID3D11ShaderResourceView* RoughTexture();
 	ID3D11ShaderResourceView* MetalTexture();
-	void CustomTextureSet(
-		ID3D11ShaderResourceView* albedo,
-		ID3D11ShaderResourceView* normal,
-		ID3D11ShaderResourceView* metal,
-		ID3D11ShaderResourceView* roughness);
+	void CustomTextureSet(ID3D11ShaderResourceView* srv, int srvIndex);
 
 
 private:
