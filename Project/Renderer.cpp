@@ -165,9 +165,9 @@ void Renderer::LoadLighting()
 	//New light intialization
 	light.color = DirectX::XMFLOAT3(0.9f, 0.9f, 0.9f);
 	light.intensity = 1.0f;
-	light.direction = DirectX::XMFLOAT3(1, 1, 0);
+	light.direction = DirectX::XMFLOAT3(1, 0, 0);
 	light.position = DirectX::XMFLOAT3(0, 0, 0);
-	light.lightType = 1;
+	light.lightType = 0;
 
 	ambientColor = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
 }

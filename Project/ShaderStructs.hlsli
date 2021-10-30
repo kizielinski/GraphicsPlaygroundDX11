@@ -118,11 +118,6 @@ float3 Diffuse(float3 normal, float3 dirToLight, Light tempLight)
 	return finalDiffuse;
 }
 
-float3 DirectionToLight(float3 direction)
-{
-	return normalize(-1 * direction);
-}
-
 //Calculate Specular value
 float Specular(float3 direction, float3 worldPos, float3 camPos, float3 normal, float specExponent)
 {
@@ -158,28 +153,31 @@ float3 FinalValueCalculation(float3 normal, float3 worldPos, float3 camPos, Ligh
 	{
 		//Directional Light
 	case LIGHT_DIRECTIONAL:
+
+		float3 toLight = normalize(-tempLight.direction);
+		float3 toCam = normalize(camPos - worldPos);
+
 		//Diffuse calculation for our first light
-		diffPreBalance = DiffusePBR(normal, -tempLight.direction);
+		diffPreBalance = DiffusePBR(normal, toLight);
 		
-		spec = MicrofacetBRDF(normal, DirectionToLight(tempLight.direction), camPos, roughness, specColor);
+		spec = MicrofacetBRDF(normal, toLight, toCam, roughness, specColor);
 		spec *= any(diffPreBalance);
 
 		balancedDiff = DiffuseEnergyConserve(diffPreBalance, spec, metalness);
 
-		//finalColor = (balancedDiff*surfaceColor+spec)*tempLight.intensity * tempLight.color;
-		//finalColor = (balancedDiff * surfaceColor + spec);//*tempLight.intensity * tempLight.color;
-		finalColor = (balancedDiff + surfaceColor * spec);//*tempLight.intensity * tempLight.color;
+		finalColor = (balancedDiff * surfaceColor + spec) * tempLight.intensity * tempLight.color;
 		break;
 
 		//Point Light
 	case LIGHT_POINT:
 		//Calculate direction
-		float3 pointLightDirection = tempLight.position - worldPos;
+		float3 toPointLight = normalize(tempLight.position - worldPos);
+		float3 toPointCam = ViewVector(camPos, worldPos);
 
-		diffPreBalance = DiffusePBR(normal, DirectionToLight(pointLightDirection));
+		diffPreBalance = DiffusePBR(normal, toPointLight);
 
 		//Change from Phong BRDF to Cook-Torrence BRDF
-		spec = MicrofacetBRDF(normal, DirectionToLight(pointLightDirection), ViewVector(camPos, worldPos), roughness, specColor);
+		spec = MicrofacetBRDF(normal, toPointLight, toPointCam, roughness, specColor);
 		spec *= any(diffPreBalance);
 
 		balancedDiff = DiffuseEnergyConserve(diffPreBalance, spec, metalness);

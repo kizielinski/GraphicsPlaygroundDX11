@@ -367,7 +367,7 @@ void Game::CreateSpaceScene()
 {
 	spaceSceneEnabled = true;
 
-	//Setup the Sun
+	////Setup the Sun
 	baseData.meshPath = "../../Assets/sphere.obj";
 	baseData.albedoPath = L"../../Assets/Sun/Sun.jpg";
 	baseData.normalPath = L"../../Assets/Sun/SunN2.png";
@@ -455,94 +455,30 @@ void Game::CreateIBLScene()
 	baseData.roughPath = L"../../Assets/defaultTextures/defaultRoughness.png";
 	baseData.metalPath = L"../../Assets/defaultTextures/defaultMetal_nonmetal.png";
 
+	//baseData.meshPath = "../../Assets/sphere.obj";
+	//baseData.albedoPath = L"../../Assets/defaultTextures/bronze_albedo.png";
+	baseData.normalPath = L"../../Assets/defaultTextures/bronze_normals.png";
+	//baseData.roughPath = L"../../Assets/defaultTextures/bronze_roughness.png";
+	//baseData.metalPath = L"../../Assets/defaultTextures/bronze_metal.png";
+
 	//Creating all metal Objects
 	
 		CreateEntity(baseData);
-		CreateTexture((uint32_t)0xff0000ff);
-		liveEntities[0]->GetMaterial()->CustomTextureSet(locationSRV, 0);
-		CreateTexture((uint32_t)0x7f7fffff);
-		liveEntities[0]->GetMaterial()->CustomTextureSet(locationSRV, 1);
-		CreateTexture((uint32_t)0x00000000);
-		liveEntities[0]->GetMaterial()->CustomTextureSet(locationSRV, 2);
-		CreateTexture((uint32_t)0xffffff00);
-		liveEntities[0]->GetMaterial()->CustomTextureSet(locationSRV, 3);
-		EntityPosition firstPosition = { -3, 0, 0 };
+		//CreateTexture((uint32_t)0xff0000ff);
+		//liveEntities[0]->GetMaterial()->CustomTextureSet(locationSRV, 0); //Abledo
+
+		CreateTexture((uint32_t)0x000000ff);
+		liveEntities[0]->GetMaterial()->CustomTextureSet(locationSRV, 1); //Normal
+
+		//CreateTexture((uint32_t)0xffffffff);
+		//liveEntities[0]->GetMaterial()->CustomTextureSet(locationSRV, 2); //Metal
+
+		//CreateTexture((uint32_t)0xff0000ff);
+		//liveEntities[0]->GetMaterial()->CustomTextureSet(locationSRV, 3); //Rough
+
+		EntityPosition firstPosition = { 0, 0, 0 };
 		liveEntities[0]->SetPositionDataStruct(firstPosition);
 		liveEntities[0]->GetTransform()->SetPosition(firstPosition.X, firstPosition.Y, firstPosition.Z);
-
-		CreateEntity(baseData);
-			CreateTexture((uint32_t)0xffffffff);
-			liveEntities[1]->GetMaterial()->CustomTextureSet(locationSRV, 0);
-			CreateTexture((uint32_t)0x7f7fffff);
-			liveEntities[1]->GetMaterial()->CustomTextureSet(locationSRV, 1);
-			CreateTexture((uint32_t)0xffffffff);
-			liveEntities[1]->GetMaterial()->CustomTextureSet(locationSRV, 2);
-			CreateTexture((uint32_t)0x404040ff);
-			liveEntities[1]->GetMaterial()->CustomTextureSet(locationSRV, 3);
-		EntityPosition secondPosition = { 0, 0, 0 };
-		liveEntities[1]->SetPositionDataStruct(secondPosition);
-		liveEntities[1]->GetTransform()->SetPosition(secondPosition.X, secondPosition.Y, secondPosition.Z);
-
-		CreateEntity(baseData);
-			CreateTexture((uint32_t)0xffffffff);
-			liveEntities[2]->GetMaterial()->CustomTextureSet(locationSRV, 0);
-			CreateTexture((uint32_t)0x7f7fffff);
-			liveEntities[2]->GetMaterial()->CustomTextureSet(locationSRV, 1);
-			CreateTexture((uint32_t)0xffffffff);
-			liveEntities[2]->GetMaterial()->CustomTextureSet(locationSRV, 2);
-			CreateTexture((uint32_t)0x808080ff);
-			liveEntities[2]->GetMaterial()->CustomTextureSet(locationSRV, 3);
-		EntityPosition thirdPosition = { 3, 0, 0 };
-		liveEntities[2]->SetPositionDataStruct(thirdPosition);
-		liveEntities[2]->GetTransform()->SetPosition(thirdPosition.X, thirdPosition.Y, thirdPosition.Z);
-	
-	//Creating all Matte Objects
-	
-		CreateEntity(baseData);
-			CreateTexture((uint32_t)0xffffffff);
-			liveEntities[3]->GetMaterial()->CustomTextureSet(locationSRV, 0);
-			CreateTexture((uint32_t)0x7f7fffff);			 
-			liveEntities[3]->GetMaterial()->CustomTextureSet(locationSRV, 1);
-			CreateTexture((uint32_t)0x00000000);			 
-			liveEntities[3]->GetMaterial()->CustomTextureSet(locationSRV, 2);
-			CreateTexture((uint32_t)0x808080ff);			
-			liveEntities[3]->GetMaterial()->CustomTextureSet(locationSRV, 3);
-		EntityPosition fourthPosition = { -3, -3, 0 };
-		liveEntities[3]->SetPositionDataStruct(fourthPosition);
-		liveEntities[3]->GetTransform()->SetPosition(fourthPosition.X, fourthPosition.Y, fourthPosition.Z);
-
-		CreateEntity(baseData);
-			CreateTexture((uint32_t)0xffffffff);
-			liveEntities[4]->GetMaterial()->CustomTextureSet(locationSRV, 0);
-			CreateTexture((uint32_t)0x7f7fffff);			 
-			liveEntities[4]->GetMaterial()->CustomTextureSet(locationSRV, 1);
-			CreateTexture((uint32_t)0x00000000);			 
-			liveEntities[4]->GetMaterial()->CustomTextureSet(locationSRV, 2);
-			CreateTexture((uint32_t)0xC0C0C0ff);			 
-			liveEntities[4]->GetMaterial()->CustomTextureSet(locationSRV, 3);
-		EntityPosition fifthPosition = { 0, -3, 0 };
-		liveEntities[4]->SetPositionDataStruct(fifthPosition);
-		liveEntities[4]->GetTransform()->SetPosition(fifthPosition.X, fifthPosition.Y, fifthPosition.Z);
-
-		CreateEntity(baseData);
-			CreateTexture((uint32_t)0xffffffff);
-			liveEntities[5]->GetMaterial()->CustomTextureSet(locationSRV, 0);
-			CreateTexture((uint32_t)0x7f7fffff);			 
-			liveEntities[5]->GetMaterial()->CustomTextureSet(locationSRV, 1);
-			CreateTexture((uint32_t)0x00000000);			 
-			liveEntities[5]->GetMaterial()->CustomTextureSet(locationSRV, 2);
-			CreateTexture((uint32_t)0x00000000);
-			liveEntities[5]->GetMaterial()->CustomTextureSet(locationSRV, 3);
-		EntityPosition sixthPosition = { 3, -3, 0 };
-		liveEntities[5]->SetPositionDataStruct(sixthPosition);
-		liveEntities[5]->GetTransform()->SetPosition(sixthPosition.X, sixthPosition.Y, sixthPosition.Z);
-		entityWindow.SetCurrentEntity(
-			liveEntities[5]->GetDataStruct(),
-			liveEntities[5]->GetGraphicDataStruct(),
-			liveEntities[5]->GetPositionDataStruct()
-		);
-
-	
 }
 
 void Game::CreateBasicGeometry()
@@ -765,12 +701,25 @@ void Game::Draw(float deltaTime, float totalTime)
 //for some reason it falls out of scope and I really don't know why.
 void Game::CreateTexture(const uint32_t fourChannelColor)
 {
-	static const uint32_t s_pixel = 0xffc99aff;
-	D3D11_SUBRESOURCE_DATA initData = { &fourChannelColor, sizeof(uint32_t), 0 };
+	//static const uint32_t s_pixel = 0xffffffff;
+	uint32_t inputColor = fourChannelColor;
+	
+	 
+	const uint8_t RED = 127;
+	const uint8_t BLUE = 255;
+	const uint8_t GREEN = 127;
+	const uint8_t ALPHA = 255;
+
+	uint8_t colors[4] = { 127, 127, 255, 255 };
+
+	uint32_t s_pixel = RED | (GREEN << 8) | (BLUE << 16) | (ALPHA << 24);
+	//D3D11_SUBRESOURCE_DATA initData = { &fourChannelColor, sizeof(uint32_t), 0 };
+	//D3D11_SUBRESOURCE_DATA initData = { &s_pixel, sizeof(uint32_t), 0 };
+	D3D11_SUBRESOURCE_DATA initData = { &colors, sizeof(uint8_t)*4, 0 };
 
 	//texture description
 	D3D11_TEXTURE2D_DESC desc = {};
-	desc.Width = desc.Height = 6;
+	desc.Width = desc.Height = 1024;
 	desc.MipLevels = 1;
 	desc.ArraySize = 1;
 	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
