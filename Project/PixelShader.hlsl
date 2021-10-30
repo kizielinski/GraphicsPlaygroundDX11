@@ -42,8 +42,8 @@ float4 main(VertexToPixelMain input) : SV_TARGET
 
 	float3 albedo = pow(albedoTexture.Sample(basicSampler, input.uv).rgb, 2.2f);
 	float roughness = roughMapTexture.Sample(basicSampler, input.uv).r;
-	//float metalness = metalMapTexture.Sample(basicSampler, input.uv).r;
-	float metalness = 1;
+	float metalness = metalMapTexture.Sample(basicSampler, input.uv).r;
+	//float metalness = 1;
 	//float roughness = 0;
 	//Specular color determination
 	float3 specularColor = lerp(F0_NON_METAL.rrr, albedo.rgb, metalness);
@@ -103,7 +103,7 @@ float4 main(VertexToPixelMain input) : SV_TARGET
 	
 	finalLight += fullIndirect;
 	//finalLight = albedoTexture.Sample(basicSampler, input.uv).rgb;
-	finalLight = normalMapTexture.Sample(basicSampler, input.uv).rgb;
+	//finalLight = normalMapTexture.Sample(basicSampler, input.uv).rgb;
 	//finalLight = roughMapTexture.Sample(basicSampler, input.uv).rgb;
 	//finalLight = metalMapTexture.Sample(basicSampler, input.uv).rgb;
 	//finalLight = input.normal;

@@ -451,13 +451,13 @@ void Game::CreateIBLScene()
 {
 	baseData.meshPath = "../../Assets/sphere.obj";
 	baseData.albedoPath = L"../../Assets/defaultTextures/defaultAlbedo.png";
-	baseData.normalPath = L"../../Assets/defaultTextures/defaultNormal.png";
+	baseData.normalPath = L"../../Assets/defaultTextures/default_normal.jpeg";
 	baseData.roughPath = L"../../Assets/defaultTextures/defaultRoughness.png";
 	baseData.metalPath = L"../../Assets/defaultTextures/defaultMetal_nonmetal.png";
 
 	//baseData.meshPath = "../../Assets/sphere.obj";
 	//baseData.albedoPath = L"../../Assets/defaultTextures/bronze_albedo.png";
-	baseData.normalPath = L"../../Assets/defaultTextures/bronze_normals.png";
+	//baseData.normalPath = L"../../Assets/defaultTextures/bronze_normals.png";
 	//baseData.roughPath = L"../../Assets/defaultTextures/bronze_roughness.png";
 	//baseData.metalPath = L"../../Assets/defaultTextures/bronze_metal.png";
 
@@ -468,7 +468,7 @@ void Game::CreateIBLScene()
 		//liveEntities[0]->GetMaterial()->CustomTextureSet(locationSRV, 0); //Abledo
 
 		CreateTexture((uint32_t)0x000000ff);
-		liveEntities[0]->GetMaterial()->CustomTextureSet(locationSRV, 1); //Normal
+		//liveEntities[0]->GetMaterial()->CustomTextureSet(locationSRV, 1); //Normal
 
 		//CreateTexture((uint32_t)0xffffffff);
 		//liveEntities[0]->GetMaterial()->CustomTextureSet(locationSRV, 2); //Metal
