@@ -16,6 +16,13 @@ cbuffer ExternalData : register(b0)
 	int SpecIBLTotalMipLevels;
 }
 
+struct PS_Output
+{ 
+	float4 color 	 : SV_TARGET0;
+	float4 normals	 : SV_TARGET1;
+	float4 depths    : SV_TARGET2;
+};
+
 //Defines texture variable for all texture resources
 Texture2D albedoTexture : register(t0); // <- T for textures.
 Texture2D normalMapTexture : register(t1); //<- 2nd texture for processing normal map
@@ -30,12 +37,9 @@ TextureCube SpecularIBLMap : register(t6);
 SamplerState basicSampler : register(s0); // <- S for sampler register
 SamplerState clampSampler : register(s1);
 
-float4 main(VertexToPixelMain input) : SV_TARGET
+PS_Output main(VertexToPixelMain input) : SV_TARGET
 {
-	//float3 unpackedNormal = normalMapTexture.Sample(basicSampler, input.uv).rgb * 2 - 1;
-	//float3 Normal = normalize(input.normal); //Should be normalized, possible error by NMVS
-	//float3 Tangent = normalize(input.tangent); //Should be normalized, possible error by NMVS
-	//Better than the above ^
+	//Normal/Tangent calculations
 	input.normal = normalize(input.normal);
 	input.tangent = normalize(input.tangent);
 	input.normal = ComputeNormalMap(normalMapTexture, basicSampler, input.uv, input.normal, input.tangent);
@@ -102,13 +106,20 @@ float4 main(VertexToPixelMain input) : SV_TARGET
 	//! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	
 	finalLight += fullIndirect;
+
+	//Allows for debugging of specific textures
 	//finalLight = albedoTexture.Sample(basicSampler, input.uv).rgb;
 	//finalLight = normalMapTexture.Sample(basicSampler, input.uv).rgb;
 	//finalLight = roughMapTexture.Sample(basicSampler, input.uv).rgb;
 	//finalLight = metalMapTexture.Sample(basicSampler, input.uv).rgb;
-	//finalLight = input.normal;
-	//finalLight = BrdfLookUpMap.Sample(basicSampler, input.uv);
+
+	//Take everything and insert it into the output struct
+	PS_Output output; 
+	output.color = float4(pow(finalLight, 1.0f / 2.2f), 1);
+	output.normals = float4(input.normal * 0.5f + 0.5f, 1);
+	output.depths = input.position.z;
 
 	//Gamma Correction
-	return float4(pow(finalLight, 1.0f / 2.2f), 1);
+	//return float4(pow(finalLight, 1.0f / 2.2f), 1);
+	return output;
 }

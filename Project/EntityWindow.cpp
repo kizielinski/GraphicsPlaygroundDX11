@@ -335,7 +335,6 @@ EntityPosition EntityWindow::ReturnTranslation()
 
 void EntityWindow::DisplayWindow(HWND windowHandle, int width, int height)
 {
-	
 	io = ImGui::GetIO();
 	//Start ImGui frame
 	ImGui_ImplDX11_NewFrame();
@@ -371,6 +370,4 @@ void EntityWindow::DisplayWindow(HWND windowHandle, int width, int height)
 		ImGui::TextWrapped("Hover Mouse and Press S to expand Menu");
 		ImGui::End();
 	}
-	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }

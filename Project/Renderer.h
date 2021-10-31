@@ -43,23 +43,49 @@ public:
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> backBufferRTV,
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthBufferDSV
 	);
-		
+
+	void CreateRenderTarget(
+		unsigned int width,
+		unsigned int height,
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView>& rtv,
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& srv);
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetSceneColorSRV();
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetSceneNormalSRV();
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetSceneDepthSRV();
+
+	void RenderWindow();
+
 private:
-	//Skybox
+	//Info from Game
 	SkyMap* mySkyBox;
 	int currentIndex;
 	Light light;
+	const std::vector<Entity*>& entities;
+	const std::vector<Light>& lights;
+
 	DirectX::XMFLOAT3 ambientColor;
 
+	//Core DX resources renderer needs access to
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> context;
 	Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain;
+
+	//Other DiriectX Resources
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> backBufferRTV;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthBufferDSV;
+
+	//Multiple Render Targets Resource fields
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> sceneColorRTV;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> sceneNormalRTV;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> sceneDepthRTV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> sceneColorSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> sceneNormalSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> sceneDepthSRV;
+
+	//Window Dims
 	unsigned int windowWidth;
 	unsigned int windowHeight;
-	const std::vector<Entity*>& entities;
-	const std::vector<Light>& lights;
 
 	SimplePixelShader* pixelShader;
 	SimpleVertexShader* vertexShader;
@@ -67,6 +93,5 @@ private:
 	void DrawPointLights(Camera* cam);
 	void SetUpLights(Camera* cam);
 	void LoadLighting();
-
 };
 

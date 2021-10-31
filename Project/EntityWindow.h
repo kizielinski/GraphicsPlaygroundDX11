@@ -1,6 +1,7 @@
 #pragma once
 #include "UIWindow.h"
 #include "DataStruct.h"
+
 class EntityWindow : public UIWindow
 {
 public:

@@ -6,9 +6,6 @@
 #include "Game.h"
 #include "Vertex.h"
 
-//Temp
-#include <iostream>
-
 //For basic image loading need to include header 
 #include "WICTextureLoader.h"
 //For cubemap loading for our skybox
@@ -454,31 +451,81 @@ void Game::CreateIBLScene()
 	baseData.normalPath = L"../../Assets/defaultTextures/default_normal.jpeg";
 	baseData.roughPath = L"../../Assets/defaultTextures/defaultRoughness.png";
 	baseData.metalPath = L"../../Assets/defaultTextures/defaultMetal_nonmetal.png";
+	EntityPosition entityPosition = { 0, 0, 0 };
 
-	//baseData.meshPath = "../../Assets/sphere.obj";
-	//baseData.albedoPath = L"../../Assets/defaultTextures/bronze_albedo.png";
-	//baseData.normalPath = L"../../Assets/defaultTextures/bronze_normals.png";
-	//baseData.roughPath = L"../../Assets/defaultTextures/bronze_roughness.png";
-	//baseData.metalPath = L"../../Assets/defaultTextures/bronze_metal.png";
+#pragma region MetalObjects
 
-	//Creating all metal Objects
-	
+		//EntityOne
 		CreateEntity(baseData);
-		//CreateTexture((uint32_t)0xff0000ff);
-		//liveEntities[0]->GetMaterial()->CustomTextureSet(locationSRV, 0); //Abledo
+		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
+		entityPosition = { -5, 1, 4 };
+		liveEntities[0]->SetPositionDataStruct(entityPosition);
+		liveEntities[0]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
+		liveEntities[0]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
+		liveEntities[0]->GetMaterial()->CustomTextureSet(device, 2, 255, 255, 255, 255); //Metal
+		liveEntities[0]->GetMaterial()->CustomTextureSet(device, 3, 0, 0, 0, 255); //Rough
 
-		CreateTexture((uint32_t)0x000000ff);
-		//liveEntities[0]->GetMaterial()->CustomTextureSet(locationSRV, 1); //Normal
 
-		//CreateTexture((uint32_t)0xffffffff);
-		//liveEntities[0]->GetMaterial()->CustomTextureSet(locationSRV, 2); //Metal
+		//EntityTwo
+		CreateEntity(baseData);
+		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
+		entityPosition = { 0, 1, 4 };
+		liveEntities[1]->SetPositionDataStruct(entityPosition);
+		liveEntities[1]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
+		liveEntities[1]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
+		liveEntities[1]->GetMaterial()->CustomTextureSet(device, 2, 255, 255, 255, 255); //Metal
+		liveEntities[1]->GetMaterial()->CustomTextureSet(device, 3, 63, 63, 63, 255); //Rough
+		
 
-		//CreateTexture((uint32_t)0xff0000ff);
-		//liveEntities[0]->GetMaterial()->CustomTextureSet(locationSRV, 3); //Rough
+		//EntityThree
+		CreateEntity(baseData);
+		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
+		entityPosition = { 5, 1, 4 };
+		liveEntities[2]->SetPositionDataStruct(entityPosition);
+		liveEntities[2]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
+		liveEntities[2]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
+		liveEntities[2]->GetMaterial()->CustomTextureSet(device, 2, 255, 255, 255, 255); //Metal
+		liveEntities[2]->GetMaterial()->CustomTextureSet(device, 3, 127, 127, 127, 255); //Rough
+		
+#pragma endregion
 
-		EntityPosition firstPosition = { 0, 0, 0 };
-		liveEntities[0]->SetPositionDataStruct(firstPosition);
-		liveEntities[0]->GetTransform()->SetPosition(firstPosition.X, firstPosition.Y, firstPosition.Z);
+#pragma region PlasticObjects
+
+		//EntityFour
+		CreateEntity(baseData);
+		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
+		entityPosition = { -5, -1, 4 };
+		liveEntities[3]->SetPositionDataStruct(entityPosition);
+		liveEntities[3]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
+		liveEntities[3]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
+		liveEntities[3]->GetMaterial()->CustomTextureSet(device, 2, 0, 0, 0, 255); //Metal
+		liveEntities[3]->GetMaterial()->CustomTextureSet(device, 3, 0, 0, 0, 255); //Rough
+		
+
+		//EntityFive
+		CreateEntity(baseData);
+		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
+		entityPosition = { 0, -1, 4 };
+		liveEntities[4]->SetPositionDataStruct(entityPosition);
+		liveEntities[4]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
+		liveEntities[4]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
+		liveEntities[4]->GetMaterial()->CustomTextureSet(device, 2, 0, 0, 0, 255); //Metal
+		liveEntities[4]->GetMaterial()->CustomTextureSet(device, 3, 63, 63, 63, 255); //Rough
+		
+
+		//EntitySix
+		CreateEntity(baseData);
+		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
+		entityPosition = { 5, -1, 4 };
+		liveEntities[5]->SetPositionDataStruct(entityPosition);
+		liveEntities[5]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
+		liveEntities[5]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
+		liveEntities[5]->GetMaterial()->CustomTextureSet(device, 2, 0, 0, 0, 255); //Metal
+		liveEntities[5]->GetMaterial()->CustomTextureSet(device, 3, 127, 127, 127, 255); //Rough
+		
+		entityWindow.AssignTranslation(entityPosition.X, entityPosition.Y, entityPosition.Z);
+#pragma endregion
+		
 }
 
 void Game::CreateBasicGeometry()
@@ -695,63 +742,4 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	//All the above condensed into renderer now.
 	currentRender->Render(deltaTime, totalTime, camera, &entityWindow, hWnd);
-}
-
-//This function is supposed to pass static color textures for displaying the IBL Scene
-//for some reason it falls out of scope and I really don't know why.
-void Game::CreateTexture(const uint32_t fourChannelColor)
-{
-	//static const uint32_t s_pixel = 0xffffffff;
-	uint32_t inputColor = fourChannelColor;
-	
-	 
-	const uint8_t RED = 127;
-	const uint8_t BLUE = 255;
-	const uint8_t GREEN = 127;
-	const uint8_t ALPHA = 255;
-
-	uint8_t colors[4] = { 127, 127, 255, 255 };
-
-	uint32_t s_pixel = RED | (GREEN << 8) | (BLUE << 16) | (ALPHA << 24);
-	//D3D11_SUBRESOURCE_DATA initData = { &fourChannelColor, sizeof(uint32_t), 0 };
-	//D3D11_SUBRESOURCE_DATA initData = { &s_pixel, sizeof(uint32_t), 0 };
-	D3D11_SUBRESOURCE_DATA initData = { &colors, sizeof(uint8_t)*4, 0 };
-
-	//texture description
-	D3D11_TEXTURE2D_DESC desc = {};
-	desc.Width = desc.Height = 1024;
-	desc.MipLevels = 1;
-	desc.ArraySize = 1;
-	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	desc.SampleDesc.Count = 1;
-	desc.Usage = D3D11_USAGE_IMMUTABLE;
-	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-	//Figured out the issue, had desc.CPUAcessFlag as writable since i stole it from
-	//one of the other shaders. Do NOT do that if you want hr to succeed. Nothing will 
-	//be written to the comptr texture if the Cpu can write as part of the access flag.
-	
-	//create texture
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture = NULL;
-	HRESULT hr = device->CreateTexture2D(&desc, &initData, texture.GetAddressOf());
-	
-	//Need to use HRESULT to get the output of device...no other way around it.
-	if (SUCCEEDED(hr))
-	{
-		//Format srv description
-		D3D11_SHADER_RESOURCE_VIEW_DESC newSRVDesc = {};
-		newSRVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		newSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		newSRVDesc.Texture2D.MipLevels = 1;
-		newSRVDesc.Texture2D.MostDetailedMip = 0;
-
-		hr = device->CreateShaderResourceView(texture.Get(), &newSRVDesc, &newSRV);
-		staticColors.push_back(newSRV);
-		locationSRV = staticColors[staticColors.size() - 1].Get();
-		newSRV = nullptr;
-		newSRV = (ID3D11ShaderResourceView*) malloc(sizeof(ID3D11ShaderResourceView));
-	}
-	if (FAILED(hr))
-	{
-		std::cout << hr << std::endl;
-	}
 }

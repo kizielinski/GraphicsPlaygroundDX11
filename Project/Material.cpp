@@ -102,18 +102,61 @@ void Material::InsertNewTexture(ID3D11ShaderResourceView* inputTexture, ID3D11Sh
     textureToChange = inputTexture;
 }
 
-void Material::CustomTextureSet(ID3D11ShaderResourceView* srv, int srvIndex)
+void Material::CustomTextureSet(
+    Microsoft::WRL::ComPtr<ID3D11Device> device,
+    int srvIndex,
+    const uint8_t R,
+    const uint8_t G,
+    const uint8_t B,
+    const uint8_t A)
 {
-    switch (srvIndex)
+    uint32_t s_pixel = R | (G << 8) | (B << 16) | (A << 24);
+    D3D11_SUBRESOURCE_DATA initData = { &s_pixel, sizeof(uint32_t), 0 };
+
+    //texture description
+    D3D11_TEXTURE2D_DESC desc = {};
+    desc.Width = desc.Height = 1;
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    desc.SampleDesc.Count = 1;
+    desc.Usage = D3D11_USAGE_IMMUTABLE;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    //Figured out the issue, had desc.CPUAcessFlag as writable since i stole it from
+    //one of the other shaders. Do NOT do that if you want hr to succeed. Nothing will 
+    //be written to the comptr texture if the Cpu can write as part of the access flag.
+
+    //create texture
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> texture = NULL;
+    HRESULT hr = device->CreateTexture2D(&desc, &initData, texture.GetAddressOf());
+
+    //Need to use HRESULT to get the output of device...no other way around it.
+    if (SUCCEEDED(hr))
     {
-        case 0: textureSRV = srv;
+        //Format srv description
+        D3D11_SHADER_RESOURCE_VIEW_DESC newSRVDesc = {};
+        newSRVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        newSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        newSRVDesc.Texture2D.MipLevels = 1;
+        newSRVDesc.Texture2D.MostDetailedMip = 0;
+
+        switch (srvIndex)
+        {
+        case 0: hr = device->CreateShaderResourceView(texture.Get(), &newSRVDesc, &textureSRV);
             break;
-        case 1: normalMapSRV = srv;
+        case 1: hr = device->CreateShaderResourceView(texture.Get(), &newSRVDesc, &normalMapSRV);
             break;
-        case 2: metalMapSRV = srv;
+        case 2: hr = device->CreateShaderResourceView(texture.Get(), &newSRVDesc, &metalMapSRV);
             break;
-        case 3: roughMapSRV = srv;
+        case 3: hr = device->CreateShaderResourceView(texture.Get(), &newSRVDesc, &roughMapSRV);
             break;
-    }   
+        }
+    }
+    if (FAILED(hr))
+    {
+        std::cout << hr << "Error in making Custom Texture!" << std::endl;
+    }
+
+      
 }
 

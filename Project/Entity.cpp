@@ -76,6 +76,8 @@ void Entity::SetPositionDataStruct(EntityPosition value)
 	myPosition.X = value.X;
 	myPosition.Y = value.Y;
 	myPosition.Z = value.Z;
+
+	transform.SetPosition(value.X, value.Y, value.Z);
 }
 
 int Entity::GetIndex()

@@ -2,24 +2,26 @@
 //2/04/2021
 //Header file for game window, stored mesh fields here using smart pointers.
 #pragma once
+
+#include <memory>
+#include <DirectXMath.h>
+#include <wrl/client.h> // Used for ComPtr - a smart pointer for COM objects
+#include <iostream>
+#include <vector>
 #include "DXCore.h"
 #include "Mesh.h"
 #include "Material.h"
 #include "SimpleShader.h"
 #include "Lights.h"
 #include "Renderer.h"
-#include <memory>
-#include <DirectXMath.h>
-#include <wrl/client.h> // Used for ComPtr - a smart pointer for COM objects
 #include "BufferStructs.h"
 #include "Transform.h"
-#include <vector>
 #include "Camera.h"
-#include "UIWindow.h"
 #include "EntityWindow.h"
 #include "imgGUI/imgui.h"
 #include "imgGUI/imgui_impl_win32.h"
 #include "imgGUI/imgui_impl_dx11.h"
+
 
 
 class Game 
@@ -59,7 +61,11 @@ private:
 	void IncrementCurrentEntity();
 	void DecrementCurrentEntity();
 	
-	void CreateTexture(uint32_t fourChannelColor);
+	void CreateTexture(
+		const uint8_t R,
+		const uint8_t G,
+		const uint8_t B,
+		const uint8_t A);
 
 	
 	// Note the usage of ComPtr below

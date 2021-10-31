@@ -8,6 +8,7 @@
 #include <DirectXMath.h>
 #include <wrl/client.h> // Used for ComPtr - a smart pointer for COM objects
 #include <memory>
+#include <iostream>
 
 using namespace std;
 
@@ -40,7 +41,13 @@ public:
 	ID3D11ShaderResourceView* NormalTexture();
 	ID3D11ShaderResourceView* RoughTexture();
 	ID3D11ShaderResourceView* MetalTexture();
-	void CustomTextureSet(ID3D11ShaderResourceView* srv, int srvIndex);
+	void CustomTextureSet(
+		Microsoft::WRL::ComPtr<ID3D11Device> device,
+		int srvIndex,
+		const uint8_t R,
+		const uint8_t G,
+		const uint8_t B,
+		const uint8_t A);
 
 
 private:
