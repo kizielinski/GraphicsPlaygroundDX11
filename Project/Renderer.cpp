@@ -1,4 +1,9 @@
- #include "Renderer.h"
+//Kyle Zielinski
+//LastEdited: 11/2/2021
+//Compilation of all the types of rendering and handles various shaders/buffers for entities.
+//Bugs: 1 (Line 129) SkyMap and RenderTarget[0] overlap eachother and cause gamma color increase issues.
+
+#include "Renderer.h"
 
 Renderer::Renderer(
 	Microsoft::WRL::ComPtr<ID3D11Device> _device, 
@@ -118,9 +123,16 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 		gameEntity->DrawEntity(context, cam);
 	}
 
+	//! Sky Draw gets clumped with RenderTarget[0] not sure how to stop this from happening
+	//! Tried to separate it manually by setting RenderTarget[0] = 0; and calling OMSetRenderTargets(...),
+	//! but it didn't have any effect. Only bug in this version of Renderer.cpp.
 	mySkyBox->SkyDraw(context.Get(), cam);
+	//!!!!!!!!!
 
 	fullScreenVS->SetShader();
+
+	//Separated these out like the Professor did for readability and
+	//eventual extensibility into SSAO and beyond.
 	//Final Combine
 	{
 		renderTargets[0] = finalRTV.Get();
@@ -144,8 +156,9 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 		context->Draw(3, 0);
 	}
 
+	//Handle Refraction calculation (basic no Silhouettes yet)
 	{
-		// if (useRefracSilhouette) {}
+		// if (useRefracSilhouette) {} <-----No refractive silhouttes yet, gonna fix rendering class organization first.
 
 		//Loop and draw refractive objects
 		{
@@ -161,6 +174,7 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 				//Material Prep? Idk if I need this
 				refracGE->GetMaterial().get()->PrepMaterialForDraw(refracGE->GetTransform(), cam);
 
+				//Setup the basic VertexShader stuff.
 				refractionPS->SetSamplerState("basicSampler", samplerOptions);
 
 				//Setup Refraction data
@@ -179,7 +193,7 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 				refractionPS->SetShaderResourceView("RefractionSilhouette", refracSRV.Get());
 				refractionPS->SetShaderResourceView("EnvironmentMap", mySkyBox->ReturnSkyMapSRV());
 
-				//// Reset "per frame" buffers
+				//// Reset "per frame" buffers <----------- I do not have these implemented yet so not using this for now
 				//context->VSSetConstantBuffers(0, 1, vsPerFrameConstantBuffer.GetAddressOf());
 				//context->PSSetConstantBuffers(0, 1, psPerFrameConstantBuffer.GetAddressOf());
 

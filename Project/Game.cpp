@@ -52,6 +52,11 @@ Game::Game(HINSTANCE hInstance)
 	irradiancePS = nullptr;
 	specularConvoledPS = nullptr;
 	lookUpTexturePS = nullptr;
+	finalCombinePS = nullptr;
+	finalOutputPS = nullptr;
+	refractionPS = nullptr;
+	newSRV = nullptr;
+	locationSRV = nullptr;
 	sky = nullptr;
 	tempEntity = nullptr; 
 	currentRender = nullptr;
