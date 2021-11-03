@@ -137,6 +137,11 @@ DirectX::XMFLOAT4X4 Transform::GetWorldMatrix()
 	return worldMatrix;
 }
 
+DirectX::XMFLOAT4X4 Transform::GetWorldITMatrix()
+{
+	return worldInverseTransposeMatrix;
+}
+
 void Transform::AddChild(Transform* child)
 {
 	if (child != nullptr)

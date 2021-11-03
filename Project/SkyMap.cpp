@@ -128,6 +128,11 @@ void SkyMap::RefreshSkyMap(
 	IBLCreateBRDFLookUpTexture(fullscreenVS, lookUpTexturePS);
 }
 
+Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SkyMap::ReturnSkyMapSRV()
+{
+	return cubeSRV;
+}
+
 void SkyMap::IBLCreateIrradianceMap(SimpleVertexShader* fullscreenVS, SimplePixelShader* irradiancePS)
 {
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> irraMapFinalTexture;

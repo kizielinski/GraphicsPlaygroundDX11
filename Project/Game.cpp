@@ -169,7 +169,11 @@ void Game::Init()
 	LoadCubeMap(baseSky);
 
 	//My implementation takes into account each newly created object, so the renderer must be initialized fist and then updated with each new entity.
-	currentRender = new Renderer(device, context, swapChain, backBufferRTV, depthStencilView, width, height, pixelShader, vertexShader, sky, liveEntities, lights);
+	currentRender = new Renderer(
+		device, context, swapChain, backBufferRTV, depthStencilView, sampler, width, height, 
+		pixelShader, finalCombinePS, finalOutputPS, refractionPS, vertexShader, fullscreenVS,
+		sky, liveEntities, lights
+	);
 	CreateBasicGeometry();
 
 	// Tell the input assembler stage of the pipeline what kind of
@@ -257,6 +261,14 @@ void Game::LoadShaders()
 		device.Get(), context.Get(), GetFullPathTo_Wide(L"IBLSpecularConvolutionsPS.cso").c_str());
 	lookUpTexturePS = new SimplePixelShader(
 		device.Get(), context.Get(), GetFullPathTo_Wide(L"IBLBrdfLookUpTablePS.cso").c_str());
+
+	finalCombinePS = new SimplePixelShader(
+		device.Get(), context.Get(), GetFullPathTo_Wide(L"FinalCombinePS.cso").c_str());
+	finalOutputPS = new SimplePixelShader(
+		device.Get(), context.Get(), GetFullPathTo_Wide(L"SimpleTexturePS.cso").c_str());
+
+	refractionPS = new SimplePixelShader(
+		device.Get(), context.Get(), GetFullPathTo_Wide(L"RefractionPS.cso").c_str());
 }
 
 void Game::RemoveEntity(int index)
@@ -371,7 +383,7 @@ void Game::CreateSpaceScene()
 	baseData.roughPath = L"../../Assets/Sun/SunR.png";
 	baseData.metalPath = L"../../Assets/Sun/SunM.png";
 
-	CreateEntity(baseData);
+	CreateEntity(baseData, false);
 
 	//Setup the Earth
 	baseData.meshPath = "../../Assets/sphere.obj";
@@ -379,7 +391,7 @@ void Game::CreateSpaceScene()
 	baseData.normalPath = L"../../Assets/Earth/EarthN.png";
 	baseData.roughPath = L"../../Assets/Earth/EarthR.png";
 	baseData.metalPath = L"../../Assets/Earth/EarthM.png";
-	CreateEntity(baseData);
+	CreateEntity(baseData, false);
 	liveEntities[0]->GetTransform()->AddChild(liveEntities[1]->GetTransform());
 	EntityPosition earthPosition = { -3, 0, 0 };
 	liveEntities[1]->SetPositionDataStruct(earthPosition);
@@ -396,7 +408,7 @@ void Game::CreateSpaceScene()
 	baseData.normalPath = L"../../Assets/Moon/MoonN.png";
 	baseData.roughPath = L"../../Assets/Moon/MoonR.png";
 	baseData.metalPath = L"../../Assets/Moon/MoonM.png";
-	CreateEntity(baseData);
+	CreateEntity(baseData, false);
 	liveEntities[1]->GetTransform()->AddChild(liveEntities[2]->GetTransform());
 	EntityPosition moonPosition = { -1.0f, 0.4f, 0 };
 	liveEntities[2]->SetPositionDataStruct(moonPosition);
@@ -414,7 +426,7 @@ void Game::CreateSpaceScene()
 	baseData.normalPath = L"../../Assets/Ship/shipnN.png";
 	baseData.roughPath = L"../../Assets/Ship/shipR.png";
 	baseData.metalPath = L"../../Assets/Ship/shipM.png";
-	CreateEntity(baseData);
+	CreateEntity(baseData, false);
 	liveEntities[2]->GetTransform()->AddChild(liveEntities[3]->GetTransform());
 	EntityPosition shipPosition = { -2.0f, 0.5f, 0 };
 	liveEntities[3]->SetPositionDataStruct(shipPosition);
@@ -432,7 +444,7 @@ void Game::CreateSpaceScene()
 	baseData.normalPath = L"../../Assets/Ship/shipnN.png";
 	baseData.roughPath = L"../../Assets/Ship/shipR.png";
 	baseData.metalPath = L"../../Assets/Ship/shipM.png";
-	CreateEntity(baseData);
+	CreateEntity(baseData, false);
 	liveEntities[1]->GetTransform()->AddChild(liveEntities[4]->GetTransform());
 	EntityPosition ship2Position = { -1.0f, 0.5f, 0.7f };
 	liveEntities[4]->SetPositionDataStruct(ship2Position);
@@ -456,7 +468,7 @@ void Game::CreateIBLScene()
 #pragma region MetalObjects
 
 		//EntityOne
-		CreateEntity(baseData);
+		CreateEntity(baseData, false);
 		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
 		entityPosition = { -5, 1, 4 };
 		liveEntities[0]->SetPositionDataStruct(entityPosition);
@@ -467,7 +479,7 @@ void Game::CreateIBLScene()
 
 
 		//EntityTwo
-		CreateEntity(baseData);
+		CreateEntity(baseData, false);
 		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
 		entityPosition = { 0, 1, 4 };
 		liveEntities[1]->SetPositionDataStruct(entityPosition);
@@ -478,7 +490,7 @@ void Game::CreateIBLScene()
 		
 
 		//EntityThree
-		CreateEntity(baseData);
+		CreateEntity(baseData, false);
 		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
 		entityPosition = { 5, 1, 4 };
 		liveEntities[2]->SetPositionDataStruct(entityPosition);
@@ -492,7 +504,7 @@ void Game::CreateIBLScene()
 #pragma region PlasticObjects
 
 		//EntityFour
-		CreateEntity(baseData);
+		CreateEntity(baseData, false);
 		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
 		entityPosition = { -5, -1, 4 };
 		liveEntities[3]->SetPositionDataStruct(entityPosition);
@@ -503,7 +515,7 @@ void Game::CreateIBLScene()
 		
 
 		//EntityFive
-		CreateEntity(baseData);
+		CreateEntity(baseData, false);
 		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
 		entityPosition = { 0, -1, 4 };
 		liveEntities[4]->SetPositionDataStruct(entityPosition);
@@ -514,7 +526,7 @@ void Game::CreateIBLScene()
 		
 
 		//EntitySix
-		CreateEntity(baseData);
+		CreateEntity(baseData, false);
 		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
 		entityPosition = { 5, -1, 4 };
 		liveEntities[5]->SetPositionDataStruct(entityPosition);
@@ -522,10 +534,23 @@ void Game::CreateIBLScene()
 		liveEntities[5]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
 		liveEntities[5]->GetMaterial()->CustomTextureSet(device, 2, 0, 0, 0, 255); //Metal
 		liveEntities[5]->GetMaterial()->CustomTextureSet(device, 3, 127, 127, 127, 255); //Rough
-		
-		entityWindow.AssignTranslation(entityPosition.X, entityPosition.Y, entityPosition.Z);
 #pragma endregion
 		
+#pragma region RefractiveObjects?
+		
+		//Entity Seven
+		CreateEntity(baseData, true);
+		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
+		entityPosition = { 1, 1, 2.5 };
+		liveEntities[6]->SetPositionDataStruct(entityPosition);
+		liveEntities[6]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
+		liveEntities[6]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
+		liveEntities[6]->GetMaterial()->CustomTextureSet(device, 2, 0, 0, 0, 255); //Metal
+		liveEntities[6]->GetMaterial()->CustomTextureSet(device, 3, 127, 127, 127, 255); //Rough
+
+		entityWindow.AssignTranslation(entityPosition.X, entityPosition.Y, entityPosition.Z);
+#pragma endregion
+
 }
 
 void Game::CreateBasicGeometry()
@@ -534,13 +559,13 @@ void Game::CreateBasicGeometry()
 	CreateIBLScene();
 }
 
-void Game::CreateEntity(GraphicData newData)
+void Game::CreateEntity(GraphicData newData, bool isRefractive)
 {
 	std::shared_ptr<Mesh> newMesh = std::make_shared<Mesh>(GetFullPathTo(newData.meshPath).c_str(), device);
 	myMeshes.push_back(newMesh.get());
 
 	LoadTextures(newData);
-	baseMaterial = std::make_shared<Material>(pixelShader, vertexShader, defaultTint, specularIntensity, inputAlbedo.Get(), inputNormal.Get(), inputRough.Get(), inputMetal.Get(), sampler.Get(), clampSampler.Get());
+	baseMaterial = std::make_shared<Material>(pixelShader, vertexShader, defaultTint, specularIntensity, isRefractive, inputAlbedo.Get(), inputNormal.Get(), inputRough.Get(), inputMetal.Get(), sampler.Get(), clampSampler.Get());
 	
 	EntityDef newDef;
 	newDef.index = (int)liveEntities.size();
@@ -566,7 +591,7 @@ void Game::EstablishNewEntityData(GraphicData newData)
 	std::shared_ptr<Mesh> tempMesh = std::make_shared<Mesh>(Mesh(GetFullPathTo(newData.meshPath).c_str(), device));
 	std::shared_ptr<Material> tempMaterial = std::make_shared<Material>(
 		//Shaders
-		pixelShader, vertexShader, defaultTint, specularIntensity, 
+		pixelShader, vertexShader, defaultTint, specularIntensity, false,
 		//New textures
 		inputAlbedo.Get(), inputNormal.Get(), inputRough.Get(), inputMetal.Get(), 
 		//Sampler
@@ -653,7 +678,7 @@ void Game::HandleUIActions()
 
 	if (entityWindow.MakeNewEntity())
 	{
-		CreateEntity(entityWindow.ReturnData());
+		CreateEntity(entityWindow.ReturnData(), false);
 		entityWindow.NewEntityFinished();
 	}
 	if (entityWindow.CanApplyData())

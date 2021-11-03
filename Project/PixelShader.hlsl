@@ -18,9 +18,10 @@ cbuffer ExternalData : register(b0)
 
 struct PS_Output
 { 
-	float4 color 	 : SV_TARGET0;
-	float4 normals	 : SV_TARGET1;
-	float4 depths    : SV_TARGET2;
+	float4 colorNoAmbient 	 : SV_TARGET0;
+	float4 ambientColor 	 : SV_TARGET1;
+	float4 normals			 : SV_TARGET2;
+	float4 depths			 : SV_TARGET3;
 };
 
 //Defines texture variable for all texture resources
@@ -105,8 +106,7 @@ PS_Output main(VertexToPixelMain input) : SV_TARGET
 
 	//! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	
-	finalLight += fullIndirect;
-
+	//finalLight += fullIndirect;
 	//Allows for debugging of specific textures
 	//finalLight = albedoTexture.Sample(basicSampler, input.uv).rgb;
 	//finalLight = normalMapTexture.Sample(basicSampler, input.uv).rgb;
@@ -114,8 +114,10 @@ PS_Output main(VertexToPixelMain input) : SV_TARGET
 	//finalLight = metalMapTexture.Sample(basicSampler, input.uv).rgb;
 
 	//Take everything and insert it into the output struct
+	//float4(pow(finalLight, 1.0f / 2.2f), 1);
 	PS_Output output; 
-	output.color = float4(pow(finalLight, 1.0f / 2.2f), 1);
+	output.colorNoAmbient = float4(finalLight, 1);
+	output.ambientColor = float4(fullIndirect, 1);
 	output.normals = float4(input.normal * 0.5f + 0.5f, 1);
 	output.depths = input.position.z;
 

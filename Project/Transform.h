@@ -27,6 +27,7 @@ public:
 	
 	// Method to return/calculate the resulting world matrix
 	DirectX::XMFLOAT4X4 GetWorldMatrix();
+	DirectX::XMFLOAT4X4 GetWorldITMatrix();
 	// No reason to have a SET, the result will always be the total result of the 3 transformations.
 
 	//Hierarchy Methods

@@ -52,7 +52,7 @@ private:
 	void CreateBasicGeometry();
 	void CreateSpaceScene();
 	void CreateIBLScene();
-	void CreateEntity(GraphicData newData);
+	void CreateEntity(GraphicData newData, bool isRefractive);
 	void EstablishNewEntityData(GraphicData newData);
 	void EstablishNewLightData();
 	void UpdateGUIWindow();
@@ -60,13 +60,6 @@ private:
 	void RemoveEntity(int index);
 	void IncrementCurrentEntity();
 	void DecrementCurrentEntity();
-	
-	void CreateTexture(
-		const uint8_t R,
-		const uint8_t G,
-		const uint8_t B,
-		const uint8_t A);
-
 	
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the
@@ -87,6 +80,11 @@ private:
 	SimplePixelShader* irradiancePS;
 	SimplePixelShader* specularConvoledPS;
 	SimplePixelShader* lookUpTexturePS;
+
+	//Refraction+
+	SimplePixelShader* finalCombinePS;
+	SimplePixelShader* finalOutputPS;
+	SimplePixelShader* refractionPS;
 
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
 

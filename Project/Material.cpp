@@ -3,9 +3,12 @@
 //Class implementation of a material object with getters and setters.
 #include "Material.h"
 #include <memory>
+#include <DirectXMath.h>
+
+using namespace DirectX;
 using namespace std;
 
-Material::Material(SimplePixelShader* pixelShader, SimpleVertexShader* vertexShader, DirectX::XMFLOAT4 colorTint, float specularIntensity, ID3D11ShaderResourceView* _textureSRV, ID3D11ShaderResourceView* _normalMapSRV, ID3D11ShaderResourceView* _roughMapSRV, ID3D11ShaderResourceView* _metalMapSRV, ID3D11SamplerState* _sampler, ID3D11SamplerState* _clampSampler)
+Material::Material(SimplePixelShader* pixelShader, SimpleVertexShader* vertexShader, DirectX::XMFLOAT4 colorTint, float specularIntensity, bool _isRefractive, ID3D11ShaderResourceView* _textureSRV, ID3D11ShaderResourceView* _normalMapSRV, ID3D11ShaderResourceView* _roughMapSRV, ID3D11ShaderResourceView* _metalMapSRV, ID3D11SamplerState* _sampler, ID3D11SamplerState* _clampSampler)
 {
     pShader = pixelShader;
     vShader = vertexShader;
@@ -17,6 +20,7 @@ Material::Material(SimplePixelShader* pixelShader, SimpleVertexShader* vertexSha
     metalMapSRV = _metalMapSRV;
     sampler = _sampler;
     clampSampler = _clampSampler;
+    isRefractive = _isRefractive;
 }
 
 Material::~Material()
@@ -49,6 +53,16 @@ SimpleVertexShader* Material::GetVertexShader()
     return vShader;
 }
 
+void Material::SetPixelShader(SimplePixelShader* ps)
+{
+    pShader = ps;
+}
+
+void Material::SetVertexShader(SimpleVertexShader* vs)
+{
+    vShader = vs;
+}
+
 DirectX::XMFLOAT4 Material::GetColorTint()
 {
     return cTint;
@@ -79,6 +93,16 @@ ID3D11ShaderResourceView* Material::MetalTexture()
     return metalMapSRV;
 }
 
+bool Material::IsRefractive()
+{
+    return isRefractive;
+}
+
+void Material::SetRefractive(bool value)
+{
+    isRefractive = value;
+}
+
 ID3D11SamplerState* Material::GetSampleState()
 {
     return sampler;
@@ -93,6 +117,21 @@ ID3D11SamplerState* Material::GetClampSampleState()
 void Material::SetColorTint(DirectX::XMFLOAT4 newTint)
 {
     cTint = newTint;
+}
+
+void Material::PrepMaterialForDraw(Transform* transform, Camera* cam)
+{
+    vShader->SetShader();
+    pShader->SetShader();
+
+   //Only Setting vertex shader data
+   vShader->SetMatrix4x4("world", transform->GetWorldMatrix());
+   vShader->SetMatrix4x4("worldInverseTranspose", transform->GetWorldITMatrix());
+   vShader->SetMatrix4x4("view", cam->GetViewMatrix());
+   vShader->SetMatrix4x4("projection", cam->GetProjectionMatrix());
+   XMFLOAT2 uvScale = XMFLOAT2(2, 2);
+   vShader->SetFloat2("uvScale", uvScale);
+   vShader->CopyAllBufferData();
 }
 
 void Material::InsertNewTexture(ID3D11ShaderResourceView* inputTexture, ID3D11ShaderResourceView* textureToChange)

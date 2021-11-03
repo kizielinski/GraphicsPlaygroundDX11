@@ -1,4 +1,3 @@
-
 #include "ShaderStructs.hlsli"
 
 TextureCube cubeMap : register(t0);

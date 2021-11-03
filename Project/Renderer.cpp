@@ -1,17 +1,20 @@
  #include "Renderer.h"
 
-
-
 Renderer::Renderer(
 	Microsoft::WRL::ComPtr<ID3D11Device> _device, 
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> _context, 
 	Microsoft::WRL::ComPtr<IDXGISwapChain> _swapChain, 
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> _backBufferRTV, 
-	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> _depthBufferDSV, 
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> _depthBufferDSV,
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> _samplerOptions,
 	unsigned int _windowWidth, 
 	unsigned int _windowHeight, 
 	SimplePixelShader* _pShader, 
+	SimplePixelShader* _finalCombinePS,
+	SimplePixelShader* _finalOutputPS,
+	SimplePixelShader* _refractionPS,
 	SimpleVertexShader* _vShader, 
+	SimpleVertexShader* _fsVS,
 	SkyMap* _sky,
 	const std::vector<Entity*>& _entities, 
 	const std::vector<Light>& _lights) : entities(_entities), lights(_lights)
@@ -27,11 +30,25 @@ Renderer::Renderer(
 	mySkyBox = _sky;
 
 	pixelShader = _pShader;
+	finalCombinePS = _finalCombinePS;
+	finalOutputPS = _finalOutputPS;
 	vertexShader = _vShader;
+	fullScreenVS = _fsVS;
+	refractionPS = _refractionPS;
+	samplerOptions = _samplerOptions;
+
+	//Default values
+	refracScale = 0.1f;
+	useRefracSil = false;
+	indexOfRefraction = 0.5f;
+	refracNormalMap = true;
 
 	CreateRenderTarget(windowWidth, windowHeight, sceneColorRTV, sceneColorSRV);
+	CreateRenderTarget(windowWidth, windowHeight, sceneAmbientColorRTV, sceneAmbientColorSRV);
 	CreateRenderTarget(windowWidth, windowHeight, sceneNormalRTV, sceneNormalSRV);
 	CreateRenderTarget(windowWidth, windowHeight, sceneDepthRTV, sceneDepthSRV);
+	CreateRenderTarget(windowWidth, windowHeight, finalRTV, finalSRV);
+	CreateRenderTarget(windowWidth, windowHeight, refracRTV, refracSRV);
 
 	LoadLighting();
 }
@@ -59,8 +76,11 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 	const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
 	context->ClearRenderTargetView(backBufferRTV.Get(), color);
 	context->ClearRenderTargetView(sceneColorRTV.Get(), color);
+	context->ClearRenderTargetView(sceneAmbientColorRTV.Get(), color);
 	context->ClearRenderTargetView(sceneNormalRTV.Get(), color);
 	context->ClearRenderTargetView(sceneDepthRTV.Get(), color);
+	context->ClearRenderTargetView(finalRTV.Get(), color);
+	context->ClearRenderTargetView(refracRTV.Get(), color);
 	context->ClearDepthStencilView(
 		depthBufferDSV.Get(),
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
@@ -68,33 +88,113 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 		0);
 
 	//Setup RTVs
-	ID3D11RenderTargetView* renderTargets[3] = {};
+	ID3D11RenderTargetView* renderTargets[5] = {};
 	renderTargets[0] = sceneColorRTV.Get();
-	renderTargets[1] = sceneNormalRTV.Get();
-	renderTargets[2] = sceneDepthRTV.Get();
+	renderTargets[1] = sceneAmbientColorRTV.Get();
+	renderTargets[2] = sceneNormalRTV.Get();
+	renderTargets[3] = sceneDepthRTV.Get();
 
-	context->OMSetRenderTargets(3, renderTargets, depthBufferDSV.Get());
-
+	context->OMSetRenderTargets(4, renderTargets, depthBufferDSV.Get());
+	
 	DrawPointLights(cam);
 
-	for (int i = 0; i < entities.size(); i++)
+	// Collect all refractive entities for after the final combine.
+	std::vector<Entity*> refractiveEntities;
+
+	//for (int i = 0; i < entities.size(); i++)
+	for(auto gameEntity : entities)
 	{
-		temp = entities[i]->GetMaterial()->GetPixelShader();
+		if (gameEntity->GetMaterial()->IsRefractive())
+		{
+			refractiveEntities.push_back(gameEntity);
+			continue; //Beaks one iteration of the loop and moves onto next
+		}
+
+		temp = gameEntity->GetMaterial()->GetPixelShader();
 		temp->SetInt("SpecIBLTotalMipLevels", mySkyBox->ReturnCalculatedMipLevels());
 		temp->SetShaderResourceView("BrdfLookUpMap", mySkyBox->ReturnLookUpTexture());
 		temp->SetShaderResourceView("IrradianceIBLMap", mySkyBox->ReturnIrradianceCubeMap());
 		temp->SetShaderResourceView("SpecularIBLMap", mySkyBox->ReturnConvolvedSpecularCubeMap());
-		entities[i]->DrawEntity(context, cam);
+		gameEntity->DrawEntity(context, cam);
 	}
 
 	mySkyBox->SkyDraw(context.Get(), cam);
 
-	context->OMSetRenderTargets(1, backBufferRTV.GetAddressOf(), 0);
+	fullScreenVS->SetShader();
+	//Final Combine
+	{
+		renderTargets[0] = finalRTV.Get();
+		context->OMSetRenderTargets(1, renderTargets, 0);
+		finalCombinePS->SetShader();
+		finalCombinePS->SetShaderResourceView("finalTextureColor", sceneColorSRV.Get());
+		finalCombinePS->SetShaderResourceView("finalTextureAmbient", sceneAmbientColorSRV.Get());
+		finalCombinePS->SetSamplerState("basicSampler", samplerOptions.Get());
+		//Fullscreen triangle render
+		context->Draw(3, 0);
+	}
+	
+	//Final total composite texture
+	{
+		renderTargets[0] = backBufferRTV.Get();
+		context->OMSetRenderTargets(1, renderTargets, 0);
+		finalOutputPS->SetShader();
+		finalOutputPS->SetShaderResourceView("Pixels", finalSRV.Get());
+		finalCombinePS->SetSamplerState("basicSampler", samplerOptions.Get());
+		//Fullscreen triangle render
+		context->Draw(3, 0);
+	}
+
+	{
+		// if (useRefracSilhouette) {}
+
+		//Loop and draw refractive objects
+		{
+			renderTargets[0] = backBufferRTV.Get();
+			context->OMSetRenderTargets(1, renderTargets, depthBufferDSV.Get());
+
+			for (auto refracGE : refractiveEntities)
+			{
+				//Material* material = refracGE->GetMaterial().get(); <--------This creates a dangling pointer
+				SimplePixelShader* prevPS = refracGE->GetMaterial().get()->GetPixelShader();
+				refracGE->GetMaterial().get()->SetPixelShader(refractionPS);
+
+				//Material Prep? Idk if I need this
+				refracGE->GetMaterial().get()->PrepMaterialForDraw(refracGE->GetTransform(), cam);
+
+				refractionPS->SetSamplerState("basicSampler", samplerOptions);
+
+				//Setup Refraction data
+				refractionPS->SetFloat2("screenSize", XMFLOAT2((float)windowWidth, (float)windowHeight));
+				refractionPS->SetMatrix4x4("viewMatrix", cam->GetViewMatrix());
+				refractionPS->SetMatrix4x4("projMatrix", cam->GetProjectionMatrix());
+				refractionPS->SetInt("useRefracSil", useRefracSil);
+				refractionPS->SetInt("refracFromNormalMap", refracNormalMap);
+				refractionPS->SetFloat3("camPos", cam->GetPosition());
+				refractionPS->SetFloat("indexOfRefraction", indexOfRefraction );
+				refractionPS->SetFloat("refractionScale", refracScale);
+				refractionPS->CopyBufferData("perObject");
+
+				//Set textures to use
+				refractionPS->SetShaderResourceView("ScreenPixels", finalSRV.Get());
+				refractionPS->SetShaderResourceView("RefractionSilhouette", refracSRV.Get());
+				refractionPS->SetShaderResourceView("EnvironmentMap", mySkyBox->ReturnSkyMapSRV());
+
+				//// Reset "per frame" buffers
+				//context->VSSetConstantBuffers(0, 1, vsPerFrameConstantBuffer.GetAddressOf());
+				//context->PSSetConstantBuffers(0, 1, psPerFrameConstantBuffer.GetAddressOf());
+
+				refracGE->GetMesh()->DrawUsingBuffs(context);
+
+				//Reset back to original pixelShader
+				refracGE->GetMaterial().get()->SetPixelShader(prevPS);
+
+				context->Draw(3, 0);
+			}
+		}
+	}
 
 	eW->DisplayWindow(windowHandle, windowWidth, windowHeight);
-
 	RenderWindow();
-
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
@@ -110,6 +210,7 @@ void Renderer::SetCurrentIndex(int index)
 	currentIndex = index;
 }
 
+//Assigns new skyMap
 void Renderer::AddSkyBox(SkyMap* sM)
 {
 	mySkyBox = sM;
@@ -152,13 +253,16 @@ void Renderer::PostResize(unsigned int _windowWidth, unsigned int _windowHeight,
 	// Release all of the renderer-specific render targets
 	sceneColorRTV.Reset();
 	sceneColorSRV.Reset();
+	sceneAmbientColorRTV.Reset();
+	sceneAmbientColorSRV.Reset();
 	sceneNormalRTV.Reset();
 	sceneNormalSRV.Reset();
 	sceneDepthSRV.Reset();
 	sceneDepthSRV.Reset();
 
 	// Recreate using the new window size
-	CreateRenderTarget(windowWidth, windowHeight, sceneColorRTV, sceneColorSRV);
+	CreateRenderTarget(windowWidth, windowHeight, sceneColorRTV, sceneColorSRV); 
+	CreateRenderTarget(windowWidth, windowHeight, sceneAmbientColorRTV, sceneAmbientColorSRV);
 	CreateRenderTarget(windowWidth, windowHeight, sceneNormalRTV, sceneNormalSRV);
 	CreateRenderTarget(windowWidth, windowHeight, sceneDepthRTV, sceneDepthSRV);
 }
@@ -239,6 +343,8 @@ void Renderer::CreateRenderTarget(
 
 Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Renderer::GetSceneColorSRV() 
 { return sceneColorSRV; }
+Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Renderer::GetSceneAmbientColorSRV()
+{return sceneAmbientColorSRV;}
 Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Renderer::GetSceneNormalSRV() 
 { return sceneNormalSRV; }
 Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Renderer::GetSceneDepthSRV()
@@ -246,10 +352,11 @@ Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Renderer::GetSceneDepthSRV()
 
 void Renderer::RenderWindow() 
 {
-	ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(480, 600), ImGuiCond_Once);
 	ImGui::Begin("Render Window");
-	ImGui::Image(this->GetSceneColorSRV().Get(), ImVec2(windowWidth / 4, windowHeight / 4));
-	ImGui::Image(this->GetSceneNormalSRV().Get(), ImVec2(windowWidth / 4, windowHeight / 4));
-	ImGui::Image(this->GetSceneDepthSRV().Get(), ImVec2(windowWidth / 4, windowHeight / 4));
+	ImGui::Image(this->GetSceneColorSRV().Get(), ImVec2((float)windowWidth / 4, (float)windowHeight / 4));
+	ImGui::Image(this->GetSceneAmbientColorSRV().Get(), ImVec2((float)windowWidth / 4, (float)windowHeight / 4));
+	ImGui::Image(this->GetSceneNormalSRV().Get(), ImVec2((float)windowWidth / 4, (float)windowHeight / 4));
+	ImGui::Image(this->GetSceneDepthSRV().Get(), ImVec2((float)windowWidth / 4, (float)windowHeight / 4));
 	ImGui::End();
 }

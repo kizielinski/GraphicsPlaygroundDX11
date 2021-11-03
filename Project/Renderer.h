@@ -4,7 +4,10 @@
 #include "SkyMap.h"
 #include "EntityWindow.h"
 #include "SimpleShader.h"
+#include <DirectXMath.h>
 #include <wrl/client.h>
+
+using namespace DirectX;
 
 class Renderer
 {
@@ -15,10 +18,15 @@ public:
 		Microsoft::WRL::ComPtr<IDXGISwapChain> _swapChain,
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> _backBufferRTV,
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> _depthBufferDSV,
+		Microsoft::WRL::ComPtr<ID3D11SamplerState> _samplerOptions,
 		unsigned int _windowWidth,
 		unsigned int _windowHeight,
 		SimplePixelShader* _pShader,
+		SimplePixelShader* _finalCombinePS,
+		SimplePixelShader* _finalOutputPS,
+		SimplePixelShader* _refractionPS,
 		SimpleVertexShader* _vShader,
+		SimpleVertexShader* _fsVS,
 		SkyMap* _sky,
 		const std::vector<Entity*>& _entities,
 		const std::vector<Light>& _lights
@@ -51,6 +59,7 @@ public:
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& srv);
 
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetSceneColorSRV();
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetSceneAmbientColorSRV();
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetSceneNormalSRV();
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetSceneDepthSRV();
 
@@ -77,18 +86,37 @@ private:
 
 	//Multiple Render Targets Resource fields
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> sceneColorRTV;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> sceneAmbientColorRTV;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> sceneNormalRTV;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> sceneDepthRTV;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> refracRTV;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> finalRTV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> sceneColorSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> sceneAmbientColorSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> sceneNormalSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> sceneDepthSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> refracSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> finalSRV;
+
+	//Refraction
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> refractionSilhouetteDepthState;
+	bool useRefracSil;
+	bool refracNormalMap;
+	float indexOfRefraction;
+	float refracScale;
 
 	//Window Dims
 	unsigned int windowWidth;
 	unsigned int windowHeight;
 
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerOptions;
+
 	SimplePixelShader* pixelShader;
+	SimplePixelShader* finalCombinePS;
+	SimplePixelShader* finalOutputPS;
+	SimplePixelShader* refractionPS;
 	SimpleVertexShader* vertexShader;
+	SimpleVertexShader* fullScreenVS;
 
 	void DrawPointLights(Camera* cam);
 	void SetUpLights(Camera* cam);

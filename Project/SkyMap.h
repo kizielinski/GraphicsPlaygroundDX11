@@ -37,6 +37,7 @@ public:
 		SimplePixelShader* specularConPS,
 		SimplePixelShader* lookUpTexturePS);
 
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ReturnSkyMapSRV();
 
 private:
 
