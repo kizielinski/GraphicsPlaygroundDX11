@@ -19,7 +19,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	switch (input.particleType)
 	{
 	case 0:
-		outputColor += float3(Texture.Sample(BasicSampler, input.uv).r * input.age, 0, 0);
+		outputColor += float3(Texture.Sample(BasicSampler, input.uv).r, 0, 0);
 		break;
 	case 1:
 		outputColor += float3(Texture.Sample(BasicSampler, input.uv).r, 0, Texture.Sample(BasicSampler, input.uv).b);
