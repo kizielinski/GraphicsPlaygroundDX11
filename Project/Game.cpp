@@ -177,7 +177,7 @@ void Game::Init()
 	currentRender = new Renderer(
 		device, context, swapChain, backBufferRTV, depthStencilView, sampler, width, height, 
 		pixelShader, finalCombinePS, finalOutputPS, refractionPS, vertexShader, fullscreenVS,
-		sky, liveEntities, lights
+		sky, liveEntities, lights, emitters
 	);
 	CreateBasicGeometry();
 
@@ -274,6 +274,11 @@ void Game::LoadShaders()
 
 	refractionPS = new SimplePixelShader(
 		device.Get(), context.Get(), GetFullPathTo_Wide(L"RefractionPS.cso").c_str());
+
+	particlePS = new SimplePixelShader(
+		device.Get(), context.Get(), GetFullPathTo_Wide(L"ParticlePS.cso").c_str());
+	particleVS = new SimpleVertexShader(
+		device.Get(), context.Get(), GetFullPathTo_Wide(L"ParticleVS.cso").c_str());
 }
 
 void Game::RemoveEntity(int index)
@@ -349,6 +354,16 @@ void Game::LoadTextures(GraphicData newData)
 		GetFullPathTo_Wide(newData.metalPath).c_str(),
 		0, // The texture gets made, but we don't need the pointer
 		inputMetal.GetAddressOf()
+	);
+}
+
+void Game::LoadEmitterTexture(std::wstring texturePath)
+{
+	CreateWICTextureFromFile(
+		device.Get(), //Allows creation of resource
+		GetFullPathTo_Wide(texturePath).c_str(),
+		0, // The texture gets made, but we don't need the pointer
+		&tempParticleTextureSRV
 	);
 }
 
@@ -464,7 +479,8 @@ void Game::CreateSpaceScene()
 void Game::CreateIBLScene()
 {
 	baseData.meshPath = "../../Assets/sphere.obj";
-	baseData.albedoPath = L"../../Assets/defaultTextures/defaultAlbedo.png";
+	baseData.albedoPath = L"../../Assets/particles/minimush.png";
+	//baseData.albedoPath = L"../../Assets/defaultTextures/defaultAlbedo.png";
 	baseData.normalPath = L"../../Assets/defaultTextures/default_normal.jpeg";
 	baseData.roughPath = L"../../Assets/defaultTextures/defaultRoughness.png";
 	baseData.metalPath = L"../../Assets/defaultTextures/defaultMetal_nonmetal.png";
@@ -477,11 +493,10 @@ void Game::CreateIBLScene()
 		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
 		entityPosition = { -5, 1, 4 };
 		liveEntities[0]->SetPositionDataStruct(entityPosition);
-		liveEntities[0]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
+		//liveEntities[0]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
 		liveEntities[0]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
 		liveEntities[0]->GetMaterial()->CustomTextureSet(device, 2, 255, 255, 255, 255); //Metal
 		liveEntities[0]->GetMaterial()->CustomTextureSet(device, 3, 0, 0, 0, 255); //Rough
-
 
 		//EntityTwo
 		CreateEntity(baseData, false);
@@ -492,7 +507,6 @@ void Game::CreateIBLScene()
 		liveEntities[1]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
 		liveEntities[1]->GetMaterial()->CustomTextureSet(device, 2, 255, 255, 255, 255); //Metal
 		liveEntities[1]->GetMaterial()->CustomTextureSet(device, 3, 63, 63, 63, 255); //Rough
-		
 
 		//EntityThree
 		CreateEntity(baseData, false);
@@ -517,7 +531,6 @@ void Game::CreateIBLScene()
 		liveEntities[3]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
 		liveEntities[3]->GetMaterial()->CustomTextureSet(device, 2, 0, 0, 0, 255); //Metal
 		liveEntities[3]->GetMaterial()->CustomTextureSet(device, 3, 0, 0, 0, 255); //Rough
-		
 
 		//EntityFive
 		CreateEntity(baseData, false);
@@ -528,7 +541,6 @@ void Game::CreateIBLScene()
 		liveEntities[4]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
 		liveEntities[4]->GetMaterial()->CustomTextureSet(device, 2, 0, 0, 0, 255); //Metal
 		liveEntities[4]->GetMaterial()->CustomTextureSet(device, 3, 63, 63, 63, 255); //Rough
-		
 
 		//EntitySix
 		CreateEntity(baseData, false);
@@ -554,6 +566,48 @@ void Game::CreateIBLScene()
 		liveEntities[6]->GetMaterial()->CustomTextureSet(device, 3, 127, 127, 127, 255); //Rough
 
 		entityWindow.AssignTranslation(entityPosition.X, entityPosition.Y, entityPosition.Z);
+#pragma endregion
+
+#pragma region Emitters
+		LoadEmitterTexture(L"../../Assets/particles/circle_04.png");
+		Emitter* em = new Emitter(50, 1, 5, particleVS, particlePS, device, context, tempParticleTextureSRV, 
+			XMFLOAT3(-8, 0, 0), 
+			XMFLOAT3(-1, 0, 0), 
+			XMFLOAT3(-0.5f, 0, 0), 
+			1);
+		emitters.push_back(em);
+
+		LoadEmitterTexture(L"../../Assets/particles/smoke_10.png");
+		em = new Emitter(300, 6, 5, particleVS, particlePS, device, context, tempParticleTextureSRV, 
+			XMFLOAT3(-4, 0, 0),
+			XMFLOAT3(0, 0, 0),
+			XMFLOAT3(0, 0, 0),
+			0);
+		emitters.push_back(em);
+
+		LoadEmitterTexture(L"../../Assets/particles/spark_01.png");
+		em = new Emitter(400, 8, 5, particleVS, particlePS, device, context, tempParticleTextureSRV, 
+			XMFLOAT3(0, 0, 0), 
+			XMFLOAT3(5, 2, 0), 
+			XMFLOAT3(1, 1, 0), 
+			2);
+		emitters.push_back(em);
+
+		LoadEmitterTexture(L"../../Assets/particles/light_01.png");
+		em = new Emitter(100, 4, 12, particleVS, particlePS, device, context, tempParticleTextureSRV,
+			XMFLOAT3(8, 1, 0), 
+			XMFLOAT3(8, 0, 4), 
+			XMFLOAT3(0.7f, 0, 0), 
+			3);
+		emitters.push_back(em);
+
+		LoadEmitterTexture(L"../../Assets/particles/star_07.png");
+		em = new Emitter(15, 3, 8, particleVS, particlePS, device, context, tempParticleTextureSRV, 
+			XMFLOAT3(0, -6, 0), 
+			XMFLOAT3(3, 3, 3), 
+			XMFLOAT3(1, 1, 1), 
+			4);
+		emitters.push_back(em);
 #pragma endregion
 
 }
@@ -734,7 +788,7 @@ void Game::HandleUIActions()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
-	HandleUIActions();
+	//HandleUIActions();
 
 	if (spaceSceneEnabled)
 	{
@@ -748,6 +802,11 @@ void Game::Update(float deltaTime, float totalTime)
 	}
 	//currentRender.Update(deltaTime, totalTime);
 	camera->Update(deltaTime, this->hWnd);
+
+	for (auto& em : emitters)
+	{
+		em->Update(deltaTime, totalTime);
+	}
 }
 
 // --------------------------------------------------------

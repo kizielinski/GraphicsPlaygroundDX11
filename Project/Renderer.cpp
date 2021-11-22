@@ -22,7 +22,8 @@ Renderer::Renderer(
 	SimpleVertexShader* _fsVS,
 	SkyMap* _sky,
 	const std::vector<Entity*>& _entities, 
-	const std::vector<Light>& _lights) : entities(_entities), lights(_lights)
+	const std::vector<Light>& _lights,
+	const std::vector<Emitter*>& _emitters) : entities(_entities), lights(_lights), emitters(_emitters)
 {
 	device = _device;
 	context = _context;
@@ -56,6 +57,28 @@ Renderer::Renderer(
 	CreateRenderTarget(windowWidth, windowHeight, refracRTV, refracSRV);
 
 	LoadLighting();
+
+	// Set up render states for particles (since all emitters might use similar ones)
+	D3D11_DEPTH_STENCIL_DESC particleDepthDesc = {};
+	particleDepthDesc.DepthEnable = true; // READ from depth buffer
+	particleDepthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // No depth WRITING
+	particleDepthDesc.DepthFunc = D3D11_COMPARISON_LESS; // Standard depth comparison
+	device->CreateDepthStencilState(&particleDepthDesc, particleDepthState.GetAddressOf());
+
+	// Additive blend state for particles (Not every emitter is necessarily additively blended!)
+	D3D11_BLEND_DESC additiveBlendDesc = {};
+	additiveBlendDesc.RenderTarget[0].BlendEnable = true;
+	additiveBlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD; // Add both colors
+	additiveBlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD; // Add both alpha values
+
+	//100% of all these values.
+	additiveBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	additiveBlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	additiveBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	additiveBlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+
+	additiveBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	device->CreateBlendState(&additiveBlendDesc, particleBlendAdditive.GetAddressOf());
 }
 
 Renderer::~Renderer()
@@ -205,6 +228,24 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 				context->Draw(3, 0);
 			}
 		}
+	}
+
+	//Render particles
+	{
+		renderTargets[0] = backBufferRTV.Get();
+		context->OMSetRenderTargets(1, renderTargets, depthBufferDSV.Get());
+
+		context->OMSetBlendState(particleBlendAdditive.Get(), 0, 0xFFFFFFFF);
+		context->OMSetDepthStencilState(particleDepthState.Get(), 0);
+
+		//Draw all emitters
+		for (auto& e : emitters)
+		{
+			e->Draw(cam, totalTime);
+		}
+
+		context->OMSetBlendState(0, 0, 0xFFFFFFFF);
+		context->OMSetDepthStencilState(0, 0);
 	}
 
 	eW->DisplayWindow(windowHandle, windowWidth, windowHeight);

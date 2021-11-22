@@ -2,6 +2,7 @@
 #include "Entity.h"
 #include "Lights.h"
 #include "SkyMap.h"
+#include "Emitter.h"
 #include "EntityWindow.h"
 #include "SimpleShader.h"
 #include <DirectXMath.h>
@@ -29,7 +30,8 @@ public:
 		SimpleVertexShader* _fsVS,
 		SkyMap* _sky,
 		const std::vector<Entity*>& _entities,
-		const std::vector<Light>& _lights
+		const std::vector<Light>& _lights,
+		const std::vector<Emitter*>& _emitters
 	);
 	~Renderer();
 
@@ -72,6 +74,7 @@ private:
 	Light light;
 	const std::vector<Entity*>& entities;
 	const std::vector<Light>& lights;
+	const std::vector<Emitter*>& emitters;
 
 	DirectX::XMFLOAT3 ambientColor;
 
@@ -97,6 +100,10 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> sceneDepthSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> refracSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> finalSRV;
+
+	// Particle states
+	Microsoft::WRL::ComPtr<ID3D11BlendState> particleBlendAdditive;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> particleDepthState;
 
 	//Refraction
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> refractionSilhouetteDepthState;

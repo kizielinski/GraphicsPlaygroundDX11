@@ -21,7 +21,7 @@
 #include "imgGUI/imgui.h"
 #include "imgGUI/imgui_impl_win32.h"
 #include "imgGUI/imgui_impl_dx11.h"
-
+#include "Emitter.h"
 
 
 class Game 
@@ -47,6 +47,7 @@ private:
 	void LoadLighting();
 	void LoadShaders();
 	void LoadTextures(GraphicData newData);
+	void LoadEmitterTexture(std::wstring texturePath);
 	void LoadCubeMap(wstring customSky);
 	void ChangeCubeMap(wstring newSky);
 	void CreateBasicGeometry();
@@ -151,4 +152,10 @@ private:
 	vector<Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> staticColors;
 	ID3D11ShaderResourceView* newSRV;
 	ID3D11ShaderResourceView* locationSRV;
+
+	//Emitters
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> tempParticleTextureSRV;
+	vector<Emitter*> emitters;
+	SimpleVertexShader* particleVS;
+	SimplePixelShader* particlePS;
 };
