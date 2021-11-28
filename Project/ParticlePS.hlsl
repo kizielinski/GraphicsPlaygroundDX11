@@ -4,7 +4,7 @@ struct VertexToPixel
 	float4 position : SV_POSITION;
 	float2 uv		: TEXCOORD0;
 	float  particleType : PSIZE; //Just to pass particle type over as a float
-	float age : PSIZE;//Just to pass age.
+	float  age : PSIZE;//Just to pass age.
 };
 
 

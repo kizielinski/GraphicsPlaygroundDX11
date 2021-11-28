@@ -116,7 +116,7 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 		0);
 
 	//Setup RTVs
-	ID3D11RenderTargetView* renderTargets[5] = {};
+	ID3D11RenderTargetView* renderTargets[4] = {};
 	renderTargets[0] = sceneColorRTV.Get();
 	renderTargets[1] = sceneAmbientColorRTV.Get();
 	renderTargets[2] = sceneNormalRTV.Get();
@@ -137,13 +137,16 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 			refractiveEntities.push_back(gameEntity);
 			continue; //Beaks one iteration of the loop and moves onto next
 		}
-
-		temp = gameEntity->GetMaterial()->GetPixelShader();
-		temp->SetInt("SpecIBLTotalMipLevels", mySkyBox->ReturnCalculatedMipLevels());
-		temp->SetShaderResourceView("BrdfLookUpMap", mySkyBox->ReturnLookUpTexture());
-		temp->SetShaderResourceView("IrradianceIBLMap", mySkyBox->ReturnIrradianceCubeMap());
-		temp->SetShaderResourceView("SpecularIBLMap", mySkyBox->ReturnConvolvedSpecularCubeMap());
-		gameEntity->DrawEntity(context, cam);
+		else 
+		{
+			temp = gameEntity->GetMaterial()->GetPixelShader();
+			temp->SetInt("SpecIBLTotalMipLevels", mySkyBox->ReturnCalculatedMipLevels());
+			temp->SetShaderResourceView("BrdfLookUpMap", mySkyBox->ReturnLookUpTexture());
+			temp->SetShaderResourceView("IrradianceIBLMap", mySkyBox->ReturnIrradianceCubeMap());
+			temp->SetShaderResourceView("SpecularIBLMap", mySkyBox->ReturnConvolvedSpecularCubeMap());
+			gameEntity->DrawEntity(context, cam);
+		}
+		
 	}
 
 	//! Sky Draw gets clumped with RenderTarget[0] not sure how to stop this from happening
@@ -191,7 +194,8 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 			for (auto refracGE : refractiveEntities)
 			{
 				//Material* material = refracGE->GetMaterial().get(); <--------This creates a dangling pointer
-				SimplePixelShader* prevPS = refracGE->GetMaterial().get()->GetPixelShader();
+				SimplePixelShader* prevPS = refracGE->GetMaterial().get()->GetPixelShader(); 
+				vertexShader->SetShader();
 				refracGE->GetMaterial().get()->SetPixelShader(refractionPS);
 
 				//Material Prep? Idk if I need this
@@ -201,9 +205,9 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 				refractionPS->SetSamplerState("basicSampler", samplerOptions);
 
 				//Setup Refraction data
-				refractionPS->SetFloat2("screenSize", XMFLOAT2((float)windowWidth, (float)windowHeight));
 				refractionPS->SetMatrix4x4("viewMatrix", cam->GetViewMatrix());
 				refractionPS->SetMatrix4x4("projMatrix", cam->GetProjectionMatrix());
+				refractionPS->SetFloat2("screenSize", XMFLOAT2((float)windowWidth, (float)windowHeight));
 				refractionPS->SetInt("useRefracSil", useRefracSil);
 				refractionPS->SetInt("refracFromNormalMap", refracNormalMap);
 				refractionPS->SetFloat3("camPos", cam->GetPosition());
@@ -254,6 +258,7 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 	swapChain->Present(0, 0);
+
 	context->OMSetRenderTargets(1, backBufferRTV.GetAddressOf(), depthBufferDSV.Get());
 }
 
