@@ -101,7 +101,7 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 	SimplePixelShader* temp;
 	//Once per frame, you're resetting the window
 	// Background color (Cornflower Blue in this case) for clearing
-	const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
+	const float color[4] = { 0, 0, 0, 0 };
 	context->ClearRenderTargetView(backBufferRTV.Get(), color);
 	context->ClearRenderTargetView(sceneColorRTV.Get(), color);
 	context->ClearRenderTargetView(sceneAmbientColorRTV.Get(), color);
@@ -146,7 +146,6 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 			temp->SetShaderResourceView("SpecularIBLMap", mySkyBox->ReturnConvolvedSpecularCubeMap());
 			gameEntity->DrawEntity(context, cam);
 		}
-		
 	}
 
 	//! Sky Draw gets clumped with RenderTarget[0] not sure how to stop this from happening
@@ -217,9 +216,10 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 
 				//Set textures to use
 				refractionPS->SetShaderResourceView("ScreenPixels", finalSRV.Get());
+				refractionPS->SetShaderResourceView("NormalTexture", refracGE->GetMaterial()->NormalTexture());
 				refractionPS->SetShaderResourceView("RefractionSilhouette", refracSRV.Get());
 				refractionPS->SetShaderResourceView("EnvironmentMap", mySkyBox->ReturnSkyMapSRV());
-
+				
 				//// Reset "per frame" buffers <----------- I do not have these implemented yet so not using this for now
 				//context->VSSetConstantBuffers(0, 1, vsPerFrameConstantBuffer.GetAddressOf());
 				//context->PSSetConstantBuffers(0, 1, psPerFrameConstantBuffer.GetAddressOf());
