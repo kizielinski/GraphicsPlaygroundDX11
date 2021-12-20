@@ -1,0 +1,13 @@
+Changelog 12/20/2021
+
+Add a bunch of features to the project which include:
+
+IBL
+Multiple Render Target Views
+Refraction
+Particles
+
+Been bad about updating changelog, but the class is over as of this date.
+Further upgrades are going to be done on my own and I will changelog appropriately.
+
+
