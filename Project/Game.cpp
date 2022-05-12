@@ -321,6 +321,34 @@ void Game::DecrementCurrentEntity()
 	currentRender->SetCurrentIndex(currentIndex);
 }
 
+void Game::CreateComputeShaderTexture()
+{
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> noiseTexture;
+	D3D11_TEXTURE2D_DESC texDesc = {};
+	texDesc.Width = noiseTextureSize;
+	texDesc.Height = noiseTextureSize;
+	texDesc.ArraySize = 1;
+	texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+	texDesc.CPUAccessFlags = 0;
+	texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	texDesc.MipLevels = 1;
+	texDesc.MiscFlags = 0;
+	texDesc.SampleDesc.Count = 1;
+	texDesc.SampleDesc.Quality = 0;
+	texDesc.Usage = D3D11_USAGE_DEFAULT;
+	device->CreateTexture2D(&texDesc, 0, noiseTexture.GetAddressOf());
+
+	// Create the SRV using a default description (passing in null below)
+	device->CreateShaderResourceView(noiseTexture.Get(), 0, &computeTextureSRV);
+
+	// Create the UAV that treats this resource as a 2D texture
+	D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+	uavDesc.Format = texDesc.Format;
+	uavDesc.Texture2D.MipSlice = 0;
+	uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+	device->CreateUnorderedAccessView(noiseTexture.Get(), &uavDesc, &computeTextureUAV);
+}
+
 void Game::LoadTextures(GraphicData newData)
 {
 	inputAlbedo.Detach();
@@ -656,8 +684,13 @@ void Game::EstablishNewEntityData(GraphicData newData)
 		//Sampler
 		sampler.Get(), clampSampler.Get());
 
+	//Make sure to acccess correct Entity
+	tempEntity = liveEntities[currentIndex];
+
+	//Set new data for mesh, material, and displayWindow.
 	tempEntity->AssignMesh(tempMesh);
 	tempEntity->AssignMaterial(tempMaterial);
+	tempEntity->SetGraphicDataStruct(newData);
 }
 
 void Game::EstablishNewLightData()
@@ -744,6 +777,7 @@ void Game::HandleUIActions()
 	{
 		GraphicData newData = entityWindow.ReturnData();
 		EstablishNewEntityData(newData);
+		//UpdateGUIWindow();
 		entityWindow.DisableNewData();
 	}
 	if (entityWindow.CanDeleteEntity() && entityCounter > 1)
@@ -788,7 +822,7 @@ void Game::HandleUIActions()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
-	//HandleUIActions();
+	HandleUIActions();
 
 	if (spaceSceneEnabled)
 	{

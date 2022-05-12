@@ -64,6 +64,7 @@ public:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetSceneAmbientColorSRV();
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetSceneNormalSRV();
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetSceneDepthSRV();
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetFluidSRV();
 
 	void RenderWindow();
 
@@ -100,6 +101,9 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> sceneDepthSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> refracSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> finalSRV;
+	
+	//Fluid Simulation
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> fluidSRV;
 
 	// Particle states
 	Microsoft::WRL::ComPtr<ID3D11BlendState> particleBlendAdditive;

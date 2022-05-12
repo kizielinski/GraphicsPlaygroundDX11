@@ -410,6 +410,9 @@ Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Renderer::GetSceneNormalSRV()
 Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Renderer::GetSceneDepthSRV()
 { return sceneDepthSRV; }
 
+Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Renderer::GetFluidSRV()
+{ return fluidSRV; }
+
 void Renderer::RenderWindow() 
 {
 	ImGui::SetNextWindowSize(ImVec2(480, 600), ImGuiCond_Once);
@@ -418,5 +421,10 @@ void Renderer::RenderWindow()
 	ImGui::Image(this->GetSceneAmbientColorSRV().Get(), ImVec2((float)windowWidth / 4, (float)windowHeight / 4));
 	ImGui::Image(this->GetSceneNormalSRV().Get(), ImVec2((float)windowWidth / 4, (float)windowHeight / 4));
 	ImGui::Image(this->GetSceneDepthSRV().Get(), ImVec2((float)windowWidth / 4, (float)windowHeight / 4));
+	ImGui::End();
+
+	ImGui::SetNextWindowSize(ImVec2(480, 600), ImGuiCond_Once);
+	ImGui::Begin("Fluids Window");
+	ImGui::Image(this->GetFluidSRV().Get(), ImVec2((float)windowWidth / 4, (float)windowHeight / 4));
 	ImGui::End();
 }

@@ -28,6 +28,8 @@ public:
 	GraphicData GetGraphicDataStruct();
 	EntityPosition GetPositionDataStruct();
 	void SetPositionDataStruct(EntityPosition newPosition);
+	void SetGraphicDataStruct(GraphicData newGraphicData);
+
 	int GetIndex();
 
 private:

@@ -19,6 +19,23 @@ Microsoft::WRL::ComPtr<ID3D11Buffer> Mesh::GetIndexBuffer()
 	return iBuff;
 }
 
+//void Mesh::ImportMesh(const char* objFile, Microsoft::WRL::ComPtr<ID3D11Device> device)
+//{
+//	//Assimp::Importer importer;
+//
+//	//const aiScene* scene = importer.ReadFile(objFile,
+//	//	aiProcess_CalcTangentSpace |
+//	//	aiProcess_Triangulate |
+//	//	aiProcess_JoinIdenticalVertices |
+//	//	aiProcess_SortByPType |
+//	//	aiProcess_ConvertToLeftHanded);
+//
+//	//if (!scene)
+//	//{
+//	//	//printf("Error loading model! Checks path and filetype!\n")
+//	//}
+//}
+
 int Mesh::GetIndexCount()
 {
 	return indexCount;
@@ -163,18 +180,18 @@ Mesh::Mesh(Vertex* vertices, int numVertices, unsigned int* indices, int numIndi
 Mesh::Mesh(const char* objFile, Microsoft::WRL::ComPtr<ID3D11Device> device)
 {
 	// Author: Chris Cascioli
-// Purpose: Basic .OBJ 3D model loading, supporting positions, uvs and normals
-//	
-// - You are allowed to directly copy/paste this into your code base
-//   for assignments, given that you clearly cite that this is not
-//   code of your own design.
-//
-// - NOTE: You'll need to #include <fstream>
+	// Purpose: Basic .OBJ 3D model loading, supporting positions, uvs and normals
+	//	
+	// - You are allowed to directly copy/paste this into your code base
+	//   for assignments, given that you clearly cite that this is not
+	//   code of your own design.
+	//
+	// - NOTE: You'll need to #include <fstream>
 
 	//Avoid error
 	indexCount = 0;
 
-// File input object
+	// File input object
 	std::ifstream obj(objFile);
 
 	// Check for successful open

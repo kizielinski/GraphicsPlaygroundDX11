@@ -158,4 +158,15 @@ private:
 	vector<Emitter*> emitters;
 	SimpleVertexShader* particleVS;
 	SimplePixelShader* particlePS;
+
+	// Compute shader related resources
+	unsigned int noiseTextureSize;
+	int noiseInterations;
+	float noisePersistance;
+	float noiseScale;
+	float noiseOffset;
+	bool computeShaderActive;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> computeTextureSRV;
+	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> computeTextureUAV;
+	void CreateComputeShaderTexture();
 };

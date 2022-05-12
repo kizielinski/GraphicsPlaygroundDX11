@@ -80,6 +80,11 @@ void Entity::SetPositionDataStruct(EntityPosition value)
 	transform.SetPosition(value.X, value.Y, value.Z);
 }
 
+void Entity::SetGraphicDataStruct(GraphicData newGraphicData)
+{
+	currentGraphicDef = newGraphicData;
+}
+
 int Entity::GetIndex()
 {
 	return myDef.index;
