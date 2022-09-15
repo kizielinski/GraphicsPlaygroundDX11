@@ -67,4 +67,6 @@ private:
 	void IBLCreateIrradianceMap(SimpleVertexShader* fullscreenVS, SimplePixelShader* irradiancePS);
 	void IBLCreateConvolvedSpecularMap(SimpleVertexShader* fullscreenVS, SimplePixelShader* specularConPS);
 	void IBLCreateBRDFLookUpTexture(SimpleVertexShader* fullscreenVS, SimplePixelShader* lookUpTexturePS);
+
+	ID3D11RenderTargetView* rtvPointer[10][5];
 };

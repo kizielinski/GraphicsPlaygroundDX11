@@ -93,15 +93,14 @@ Game::~Game()
 	// we don't need to explicitly clean up those DirectX objects
 	// - If we weren't using smart pointers, we'd need
 	//   to call Release() on each DirectX object created in Game
-	
 	/*for (int i = 0; i < liveEntities.size(); i++)
 	{
 		liveEntities[i]->GetMaterial()->ClearMaterial();
 		liveEntities[i]->GetMesh().reset();
 		delete liveEntities[i];
 	}*/
-	liveEntities.clear();
 
+	liveEntities.clear();
 	myMeshes.clear();
 	staticColors.clear();
 	
@@ -160,6 +159,7 @@ void Game::Init()
 	sampDescription.MaxLOD = D3D11_FLOAT32_MAX;
 	device->CreateSamplerState(&sampDescription, sampler.GetAddressOf());
 
+	//Setup clampSampler at the same time, cheap and easy
 	sampDescription.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
 	sampDescription.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
 	sampDescription.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -267,14 +267,17 @@ void Game::LoadShaders()
 	lookUpTexturePS = new SimplePixelShader(
 		device.Get(), context.Get(), GetFullPathTo_Wide(L"IBLBrdfLookUpTablePS.cso").c_str());
 
+	//Used to combine all our textures at the end of rendering, before presentation.
 	finalCombinePS = new SimplePixelShader(
 		device.Get(), context.Get(), GetFullPathTo_Wide(L"FinalCombinePS.cso").c_str());
 	finalOutputPS = new SimplePixelShader(
 		device.Get(), context.Get(), GetFullPathTo_Wide(L"SimpleTexturePS.cso").c_str());
 
+	//Used for objects with refraction as part of their render
 	refractionPS = new SimplePixelShader(
 		device.Get(), context.Get(), GetFullPathTo_Wide(L"RefractionPS.cso").c_str());
 
+	//Some shaders for some particle action!
 	particlePS = new SimplePixelShader(
 		device.Get(), context.Get(), GetFullPathTo_Wide(L"ParticlePS.cso").c_str());
 	particleVS = new SimpleVertexShader(
@@ -299,7 +302,7 @@ void Game::RemoveEntity(int index)
 	DecrementCurrentEntity();
 }
 
-//Keeping track of the current index (also don't let it fall below 0)
+//Keeps track of the current index (also don't let it fall below 0)
 //Allows to return current selected entity.
 void Game::IncrementCurrentEntity()
 {
@@ -321,6 +324,7 @@ void Game::DecrementCurrentEntity()
 	currentRender->SetCurrentIndex(currentIndex);
 }
 
+//Compute shader texture generation. (Make this a helper functions)
 void Game::CreateComputeShaderTexture()
 {
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> noiseTexture;
@@ -349,6 +353,7 @@ void Game::CreateComputeShaderTexture()
 	device->CreateUnorderedAccessView(noiseTexture.Get(), &uavDesc, &computeTextureUAV);
 }
 
+//Creates our textures from hard memory.
 void Game::LoadTextures(GraphicData newData)
 {
 	inputAlbedo.Detach();
@@ -385,6 +390,7 @@ void Game::LoadTextures(GraphicData newData)
 	);
 }
 
+//Load Particle Texture
 void Game::LoadEmitterTexture(std::wstring texturePath)
 {
 	CreateWICTextureFromFile(
@@ -395,6 +401,7 @@ void Game::LoadEmitterTexture(std::wstring texturePath)
 	);
 }
 
+//Load CubeMap Texture
 void Game::LoadCubeMap(wstring customSky)
 {
 	CreateDDSTextureFromFile(

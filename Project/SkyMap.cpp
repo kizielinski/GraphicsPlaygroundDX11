@@ -272,45 +272,54 @@ void SkyMap::IBLCreateConvolvedSpecularMap(SimpleVertexShader* fullscreenVS, Sim
 
 	//Loop and render convolution
 
-	for (int currentMip = 0; currentMip < calculatedMipLevels; currentMip++)
+	for (int mip = 0; mip < calculatedMipLevels; mip++)
 	{
+
+		// Loop through the six cubemap faces and calculate 
+		// the convultion for each, resulting in a full 360 degree
+		// irradiance map, once completed
 		for (int face = 0; face < 6; face++)
 		{
 			// Make a render target view for this face
-			D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+            D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
 			rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;	// This points to a Texture2D Array
 			rtvDesc.Texture2DArray.ArraySize = 1;			// How much of the array do we have access to?
 			rtvDesc.Texture2DArray.FirstArraySlice = face;	// Which texture are we rendering into?
-			rtvDesc.Texture2DArray.MipSlice = currentMip;			// Which mip of that texture are we rendering into?
+			rtvDesc.Texture2DArray.MipSlice = mip;			// Which mip of that texture are we rendering into?
 			rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	// Same format as accum texture
 
-			Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtv;
-			device->CreateRenderTargetView(conSpecMapFinalTexture.Get(), &rtvDesc, rtv.GetAddressOf());
+			//Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtv;
+			device->CreateRenderTargetView(conSpecMapFinalTexture.Get(), &rtvDesc, &rtvPointer[mip][face]);
 
 			// Clear and set this render target
 			float black[4] = {}; // Initialize to all zeroes
-			context->ClearRenderTargetView(rtv.Get(), black);
-			context->OMSetRenderTargets(1, rtv.GetAddressOf(), 0);
+			context->ClearRenderTargetView(rtvPointer[mip][face], black);
+			context->OMSetRenderTargets(1, &rtvPointer[mip][face], 0);
 
+			// Create a viewport that matches the size of this MIP
 			D3D11_VIEWPORT vp = {};
-			vp.Width = (float)pow(2, calculatedMipLevels + mipToSkip - 1 - currentMip);
-			vp.Height = vp.Width;
+			vp.Width = (float)pow(2, calculatedMipLevels + mipToSkip - 1 - mip);
+			vp.Height = vp.Width; // Always square
 			vp.MinDepth = 0.0f;
 			vp.MaxDepth = 1.0f;
 			context->RSSetViewports(1, &vp);
-
-			specularConPS->SetFloat("roughness", currentMip / (float)(calculatedMipLevels-1));
+			
+			// Handle per-face shader data and copy
+			specularConPS->SetFloat("roughness", mip / (float)(calculatedMipLevels - 1));
 			specularConPS->SetInt("faceIndex", face);
-			specularConPS->SetInt("mipLevel", currentMip);
+			specularConPS->SetInt("mipLevel", mip);
 			specularConPS->CopyAllBufferData();
 
-			//Fullscreen triangle render
+			// Render exactly 3 vertices
 			context->Draw(3, 0);
 
-			//Flushes the graphics pipeline.
-			//Makes c++ wait for a second, better than having hardware timeout and causing a crash
+			// Ensure we flush the graphics pipe to 
+			// so that we don't cause a hardware timeout
+			// which can result in a driver crash
+			// NOTE: This might make C++ sit and wait!  Better than a crash!
 			context->Flush();
 		}
+
 	}
 
 	//Reset everything after loop
