@@ -1,0 +1,9 @@
+Changelog 10/3/2022
+
+Added ASSIMP Intergration into the project
+
+std::min/max function errors in ASSIMP library, solution found here: https://github.com/assimp/assimp/issues/2271
+
+Bug: ASSIMP usage doesn't calculate tangents correctly, will have to look into this further
+
+

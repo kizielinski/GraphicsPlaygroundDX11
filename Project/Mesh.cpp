@@ -6,6 +6,11 @@
 #include <vector>
 #include <fstream>
 
+//Assimp
+#include <assimp/Importer.hpp>  //interface
+#include <assimp/scene.h>       //output data structure
+#include <assimp/postprocess.h> //Flags for post processing
+
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
 
@@ -19,30 +24,19 @@ Microsoft::WRL::ComPtr<ID3D11Buffer> Mesh::GetIndexBuffer()
 	return iBuff;
 }
 
-//void Mesh::ImportMesh(const char* objFile, Microsoft::WRL::ComPtr<ID3D11Device> device)
-//{
-//	//Assimp::Importer importer;
-//
-//	//const aiScene* scene = importer.ReadFile(objFile,
-//	//	aiProcess_CalcTangentSpace |
-//	//	aiProcess_Triangulate |
-//	//	aiProcess_JoinIdenticalVertices |
-//	//	aiProcess_SortByPType |
-//	//	aiProcess_ConvertToLeftHanded);
-//
-//	//if (!scene)
-//	//{
-//	//	//printf("Error loading model! Checks path and filetype!\n")
-//	//}
-//}
-
 int Mesh::GetIndexCount()
 {
 	return indexCount;
 }
 
-void Mesh::InitializeBuffers(Vertex* vertices, int numVertices, unsigned int* indices, int numIndices, Microsoft::WRL::ComPtr<ID3D11Device> device)
+void Mesh::InitializeBuffers(Vertex* vertices, int numVertices, unsigned int* indices, int numIndices, Microsoft::WRL::ComPtr<ID3D11Device> device, bool calcTangents)
 {
+	if (calcTangents)
+	{
+		// Calculate the tangents before copying to buffer?
+		CalculateTangents(vertices, numVertices, indices, numIndices);
+	}
+	
 	indexCount = numIndices;
 
 	D3D11_BUFFER_DESC vbd;
@@ -52,9 +46,6 @@ void Mesh::InitializeBuffers(Vertex* vertices, int numVertices, unsigned int* in
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
 	vbd.StructureByteStride = 0;
-
-	//Calc Tangents before 
-	CalculateTangents(vertices, numVertices, indices, numIndices);
 
 	D3D11_SUBRESOURCE_DATA initialVertexData;
 	initialVertexData.pSysMem = vertices;
@@ -174,10 +165,22 @@ void Mesh::CalculateTangents(Vertex* verts, int numVerts, unsigned int* indices,
 //Mesh::Mesh(int* test);
 Mesh::Mesh(Vertex* vertices, int numVertices, unsigned int* indices, int numIndices, Microsoft::WRL::ComPtr<ID3D11Device> device)
 {	
-	InitializeBuffers(vertices, numVertices, indices, numIndices, device);
+	InitializeBuffers(vertices, numVertices, indices, numIndices, device, true);
 }
 
-Mesh::Mesh(const char* objFile, Microsoft::WRL::ComPtr<ID3D11Device> device)
+Mesh::Mesh(const char* objFile, Microsoft::WRL::ComPtr<ID3D11Device> device, bool useASSIMP)
+{
+	if (useASSIMP == true)
+	{
+		ASSIMPMeshLoad(objFile, device);
+	}
+	else 
+	{
+		StandardMeshLoad(objFile, device);
+	}
+}
+
+void Mesh::StandardMeshLoad(const char* objFile, Microsoft::WRL::ComPtr<ID3D11Device> device)
 {
 	// Author: Chris Cascioli
 	// Purpose: Basic .OBJ 3D model loading, supporting positions, uvs and normals
@@ -396,7 +399,74 @@ Mesh::Mesh(const char* objFile, Microsoft::WRL::ComPtr<ID3D11Device> device)
 	//    and detect duplicate vertices, but at that point it would be better to use a more
 	//    sophisticated model loading library like TinyOBJLoader or AssImp (yes, that's its name)
 
-	InitializeBuffers(&verts[0], vertCounter, &indices[0], indexCounter, device);
+	InitializeBuffers(&verts[0], vertCounter, &indices[0], indexCounter, device, true);
+}
+
+void Mesh::ASSIMPMeshLoad(const char* objFile, Microsoft::WRL::ComPtr<ID3D11Device> device)
+{
+	// Create the importer
+	Assimp::Importer importer;
+
+	const aiScene* scene = importer.ReadFile(objFile,
+		aiProcess_CalcTangentSpace |
+		aiProcess_Triangulate |
+		aiProcess_JoinIdenticalVertices |
+		aiProcess_SortByPType |
+	    aiProcess_ConvertToLeftHanded);
+
+
+	// If the import failed, report it
+	if (!scene) {
+		printf(importer.GetErrorString());
+	}
+
+	//Grab the first mesh in the array and build it from its vertex data
+	aiMesh* loadedMesh = scene->mMeshes[0];
+	std::vector<Vertex> vertices;
+
+	//Loop assimp verts to create vertex structs
+	for (unsigned int i = 0; i < loadedMesh->mNumVertices; i++)
+	{
+		Vertex v = {};
+		v.Position.x = loadedMesh->mVertices[i].x;
+		v.Position.y = loadedMesh->mVertices[i].y;
+		v.Position.z = loadedMesh->mVertices[i].z;
+
+		if (loadedMesh->HasNormals())
+		{
+			v.Normal.x = loadedMesh->mNormals[i].x;
+			v.Normal.x = loadedMesh->mNormals[i].y;
+			v.Normal.x = loadedMesh->mNormals[i].z;
+		}
+
+		if (loadedMesh->HasTextureCoords(0))
+		{
+			v.UV.x = loadedMesh->mTextureCoords[0][i].x;
+			v.UV.x = loadedMesh->mTextureCoords[0][i].y;
+		}
+
+		if (loadedMesh->HasTangentsAndBitangents())
+		{
+			v.Tangent.x = loadedMesh->mTangents[i].x;
+			v.Tangent.y = loadedMesh->mTangents[i].y;
+			v.Tangent.z = loadedMesh->mTangents[i].z;
+		}
+
+		vertices.push_back(v);
+	}
+
+	//Grab indices
+	std::vector<unsigned int> indices;
+	for (unsigned int f = 0; f < loadedMesh->mNumFaces; f++)
+	{
+		for (unsigned int i = 0; i < loadedMesh->mFaces[f].mNumIndices; i++)
+		{
+			unsigned int index = loadedMesh->mFaces[f].mIndices[i];
+			indices.push_back(index);
+		}
+	}
+
+	InitializeBuffers(&vertices[0], vertices.size(), &indices[0], indices.size(), device, false);
 }
 
 Mesh::~Mesh()
