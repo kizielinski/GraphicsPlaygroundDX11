@@ -22,7 +22,7 @@ Renderer::Renderer(
 	SimpleVertexShader* _fsVS,
 	SkyMap* _sky,
 	const std::vector<Entity*>& _entities, 
-	const std::vector<Light>& _lights,
+	const std::unordered_map<std::string, LightObject>& _lights,
 	const std::vector<Emitter*>& _emitters) : entities(_entities), lights(_lights), emitters(_emitters)
 {
 	device = _device;

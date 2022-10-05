@@ -193,50 +193,54 @@ void Game::LoadLighting()
 
 	ambientColor = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
 
-	//New light intialization
-	light.color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
-	light.intensity = 1.0f;
-	light.direction = DirectX::XMFLOAT3(1, 0, 0);
-	light.position = DirectX::XMFLOAT3(2, 4, 0);
-	light.lightType = 0;
+	lights.emplace("defaultLight", LightObject(
+		DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), //Color
+		DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f), //Direction
+		DirectX::XMFLOAT3(2.0f, 4.0f, 0.0f), //Position
+		1.0f,
+		0
+	));
 	lightCounter++;
-	lights.push_back(light);
 
 	//Upwards
-	upward.color = DirectX::XMFLOAT3(1.0f, 0.5f, 0);
-	upward.intensity = 0.3f;
-	upward.direction = DirectX::XMFLOAT3(0, 1, 0);
-	upward.position = DirectX::XMFLOAT3(0, 0, 0);
-	upward.lightType = 0;
+	lights.emplace("upwardsLight", LightObject(
+		DirectX::XMFLOAT3(1.0f, 0.5f, 0.0f),
+		DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f),
+		DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+		0.3f,
+		0
+	));
 	lightCounter++;
-	lights.push_back(upward);
 
 	//Diagonal
-	diagonal.color = DirectX::XMFLOAT3(1.0f, 0.01f, 0.01f);
-	diagonal.intensity = 6.0f;
-	diagonal.direction = DirectX::XMFLOAT3(0, 0, 0);
-	diagonal.position = DirectX::XMFLOAT3(2, 3, 0);
-	diagonal.lightType = 1;
+	lights.emplace("diagonalLight", LightObject(
+		DirectX::XMFLOAT3(1.0f, 0.01f, 0.01f),
+		DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+		DirectX::XMFLOAT3(2.0f, 3.0f, 0.0f),
+		6.0f,
+		1
+	));
 	lightCounter++;
-	lights.push_back(diagonal);
 
 	//GreyLight
-	grey.color = DirectX::XMFLOAT3(0.8f, 0.8f, 0.8f);
-	grey.intensity = 0.6f;
-	grey.direction = DirectX::XMFLOAT3(-0.2f, 0.0f, -0.5f);
-	grey.position = DirectX::XMFLOAT3(0, 0, 0);
-	grey.lightType = 0;
+	lights.emplace("greyLight", LightObject(
+		DirectX::XMFLOAT3(0.8f, 0.8f, 0.0f),
+		DirectX::XMFLOAT3(-0.2f, 1.0f, -0.5f),
+		DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+		0.3f,
+		0
+	));
 	lightCounter++;
-	lights.push_back(grey);
 
 	//DefaultLight
-	defaultLight.color = DirectX::XMFLOAT3(0.4f, 0.4f, 0.4f);
-	defaultLight.intensity = 0.5f;
-	defaultLight.direction = DirectX::XMFLOAT3(-0.2f, -1.0f, 0.5f);
-	defaultLight.position = DirectX::XMFLOAT3(0, 0, 0);
-	defaultLight.lightType = 0;
+	lights.emplace("defaultLight", LightObject(
+		DirectX::XMFLOAT3(0.4f, 0.4f, 0.4f),
+		DirectX::XMFLOAT3(-0.2f, -1.0f, 0.5f),
+		DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+		0.5f,
+		0
+	));
 	lightCounter++;
-	lights.push_back(defaultLight);
 }
 
 // --------------------------------------------------------

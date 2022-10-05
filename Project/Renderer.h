@@ -5,6 +5,7 @@
 #include "Emitter.h"
 #include "EntityWindow.h"
 #include "SimpleShader.h"
+#include "LightObject.h"
 #include <DirectXMath.h>
 #include <wrl/client.h>
 
@@ -30,7 +31,7 @@ public:
 		SimpleVertexShader* _fsVS,
 		SkyMap* _sky,
 		const std::vector<Entity*>& _entities,
-		const std::vector<Light>& _lights,
+		const std::unordered_map<std::string, LightObject>& _lights,
 		const std::vector<Emitter*>& _emitters
 	);
 	~Renderer();
@@ -74,8 +75,8 @@ private:
 	int currentIndex;
 	Light light;
 	const std::vector<Entity*>& entities;
-	const std::vector<Light>& lights;
 	const std::vector<Emitter*>& emitters;
+	const std::unordered_map<std::string, LightObject>& lights;
 
 	DirectX::XMFLOAT3 ambientColor;
 

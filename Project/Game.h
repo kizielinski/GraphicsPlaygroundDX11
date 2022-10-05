@@ -12,6 +12,7 @@
 #include "Mesh.h"
 #include "Material.h"
 #include "SimpleShader.h"
+#include "LightObject.h"
 #include "Lights.h"
 #include "Renderer.h"
 #include "BufferStructs.h"
@@ -117,7 +118,7 @@ private:
 	EntityWindow entityWindow;
 	Entity* tempEntity;
 	vector<Entity*> liveEntities;
-	vector<Light> lights;
+	//vector<Light> lights;
 	int currentIndex;
 
 	SkyMap* sky;
@@ -131,7 +132,8 @@ private:
 	// A simple transform for testing
 	Transform transform;
 
-	//Rise up Gaurdian
+	//Rise up Guardian
+	std::unordered_map<std::string, LightObject> lights;
 	Light light;
 	Light upward;
 	Light diagonal;
