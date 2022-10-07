@@ -14,7 +14,8 @@ public:
 		DirectX::XMFLOAT3 direction,
 		DirectX::XMFLOAT3 position,
 		float intensity,
-		float lightType
+		float lightType,
+		float range = 1
 	);
 	LightObject(Light newLight);
 	~LightObject();
@@ -27,6 +28,7 @@ public:
 	void SetDirection(DirectX::XMFLOAT3 direction);
 	void SetLightType(float lightType);
 	void SetPosition(DirectX::XMFLOAT3 position);
+	void SetRange(float range);
 
 private:
 	Light light;

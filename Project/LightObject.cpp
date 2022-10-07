@@ -5,13 +5,14 @@ LightObject::LightObject()
 	light = Light();
 }
 
-LightObject::LightObject(DirectX::XMFLOAT3 color, DirectX::XMFLOAT3 direction, DirectX::XMFLOAT3 position, float intensity, float lightType)
+LightObject::LightObject(DirectX::XMFLOAT3 color, DirectX::XMFLOAT3 direction, DirectX::XMFLOAT3 position, float intensity, float lightType, float range)
 {
 	light.color = color;
 	light.direction = direction;
 	light.position = position;
 	light.intensity = intensity;
 	light.lightType = lightType;
+	light.range = range;
 }
 
 LightObject::LightObject(Light newLight)
@@ -56,4 +57,9 @@ void LightObject::SetLightType(float lightType)
 void LightObject::SetPosition(DirectX::XMFLOAT3 position)
 {
 	light.position = position;
+}
+
+void LightObject::SetRange(float range)
+{
+	light.range = range;
 }

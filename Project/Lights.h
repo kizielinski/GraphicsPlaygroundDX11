@@ -15,4 +15,5 @@ struct Light
 	DirectX::XMFLOAT3 direction;
 	int lightType; 
 	DirectX::XMFLOAT3 position;
+	float range;
 };

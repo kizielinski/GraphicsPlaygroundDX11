@@ -29,6 +29,7 @@ struct Light
 	float3 direction;
 	int lightType;
 	float3 position;
+	float range;
 };
 
 struct VertexShaderInput
@@ -139,11 +140,24 @@ float3 ViewVector(float3 camPos, float3 worldPos)
 	return view;
 }
 
+//Range function for light fades
+float Attenuate(Light light, float3 worldPos)
+{
+	float distance = (light.position, worldPos);
+
+	//Ranged-based attentuation
+	float attenuation = saturate(1.0f - (distance * distance / (light.range * light.range)));
+
+	//Softer value
+	return attenuation * attenuation;
+}
+
 float3 FinalValueCalculation(float3 normal, float3 worldPos, float3 camPos, Light tempLight, float3 surfaceColor, float specularIntensity, float roughness, float metalness, float3 specColor)
 {
-	float3 finalColor = { 255, 0, 0 };
+	float3 finalColor = { 0, 0, 0 };
 	float3 spec;
 	float3 diffuse;
+	float attenuation;
 	int lightType = tempLight.lightType;
 
 	float diffPreBalance;
@@ -172,8 +186,10 @@ float3 FinalValueCalculation(float3 normal, float3 worldPos, float3 camPos, Ligh
 	case LIGHT_POINT:
 		//Calculate direction
 		float3 toPointLight = normalize(tempLight.position - worldPos);
-		float3 toPointCam = ViewVector(camPos, worldPos);
+		float3 toPointCam = normalize(camPos - worldPos);
 
+		attenuation = (tempLight, worldPos);
+		
 		diffPreBalance = DiffusePBR(normal, toPointLight);
 
 		//Change from Phong BRDF to Cook-Torrence BRDF

@@ -336,17 +336,28 @@ void Renderer::DrawPointLights(Camera* cam)
 
 void Renderer::SetUpLights(Camera* cam)
 {
-	pixelShader->SetData(
+	int iterator = 0;
+	Light shaderLights[64];
+	for (auto light : lights)
+	{
+		if (iterator < lights.size())
+		{
+			shaderLights[iterator] = light.second.GetLight();
+			iterator++;
+		}
+	}
+
+	/*pixelShader->SetData(
 		"light",
 		&light,
 		sizeof(Light)
-	);
-
-	/*pixelShader->SetData(
-		"lightList",
-		&lights,
-		sizeof(Light) * lights.size()
 	);*/
+
+	pixelShader->SetData(
+		"lightList",
+		&shaderLights,
+		sizeof(Light) * lights.size()
+	);
 
 	pixelShader->SetFloat3("ambientColor", ambientColor);
 
@@ -360,7 +371,7 @@ void Renderer::SetUpLights(Camera* cam)
 void Renderer::LoadLighting()
 {
 	//New light intialization
-	light.color = DirectX::XMFLOAT3(0.9f, 0.9f, 0.9f);
+	light.color = DirectX::XMFLOAT3(1.0f, 0.0f, 1.0f);
 	light.intensity = 1.0f;
 	light.direction = DirectX::XMFLOAT3(1, 0, 0);
 	light.position = DirectX::XMFLOAT3(0, 0, 0);

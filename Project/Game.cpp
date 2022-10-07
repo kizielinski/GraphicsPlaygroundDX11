@@ -198,17 +198,17 @@ void Game::LoadLighting()
 		DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f), //Direction
 		DirectX::XMFLOAT3(2.0f, 4.0f, 0.0f), //Position
 		1.0f,
-		0
+		1
 	));
 	lightCounter++;
 
 	//Upwards
 	lights.emplace("upwardsLight", LightObject(
-		DirectX::XMFLOAT3(1.0f, 0.5f, 0.0f),
-		DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f),
+		DirectX::XMFLOAT3(0.0f, 0.8f, 0.0f),
+		DirectX::XMFLOAT3(1.0f, 1.0f, 0.0f),
 		DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
-		0.3f,
-		0
+		1.0f,
+		1
 	));
 	lightCounter++;
 
@@ -217,30 +217,56 @@ void Game::LoadLighting()
 		DirectX::XMFLOAT3(1.0f, 0.01f, 0.01f),
 		DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
 		DirectX::XMFLOAT3(2.0f, 3.0f, 0.0f),
-		6.0f,
+		1.0f,
 		1
 	));
 	lightCounter++;
 
 	//GreyLight
 	lights.emplace("greyLight", LightObject(
-		DirectX::XMFLOAT3(0.8f, 0.8f, 0.0f),
+		DirectX::XMFLOAT3(0.8f, 0.8f, 0.01f),
 		DirectX::XMFLOAT3(-0.2f, 1.0f, -0.5f),
 		DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
-		0.3f,
-		0
+		1.0f,
+		1
 	));
 	lightCounter++;
 
-	//DefaultLight
-	lights.emplace("defaultLight", LightObject(
-		DirectX::XMFLOAT3(0.4f, 0.4f, 0.4f),
+	//RedLight
+	lights.emplace("redLight", LightObject(
+		DirectX::XMFLOAT3(1.0f, 0.01f, 0.01f),
 		DirectX::XMFLOAT3(-0.2f, -1.0f, 0.5f),
 		DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
-		0.5f,
-		0
+		1.0f,
+		1
 	));
 	lightCounter++;
+
+	for (int l = lightCounter; l < 64; l++)
+	{
+		std::string name = "randomLight" + std::to_string(lightCounter);
+		lights.emplace(name, LightObject(
+			DirectX::XMFLOAT3(GenRandFloat(), GenRandFloat(), GenRandFloat()),
+			DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+			DirectX::XMFLOAT3(1.0f, 1.0f, 0.0f),
+			//DirectX::XMFLOAT3(GenRandNegAndPos() * 10, GenRandNegAndPos() * 10, GenRandNegAndPos() * 10),
+			0.08f,
+			GenRandFloat()
+		));
+		lightCounter++;
+	}
+}
+
+//Gen rand float for colors 0.0f to 1.0f
+float Game::GenRandFloat()
+{
+	return static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+}
+
+//Gen rand number from -1.0f to 1.0f
+float Game::GenRandNegAndPos()
+{
+	return -1 + (((float)rand() / (float)RAND_MAX) * 2);
 }
 
 // --------------------------------------------------------

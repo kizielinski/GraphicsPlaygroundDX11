@@ -3,7 +3,7 @@
 //PixelShader.hlsl file which handles how the lighting will be rendered.
 #include "ShaderStructs.hlsli"
 
-#define MAX_LIGHTS 50
+#define MAX_LIGHTS 64
 
 cbuffer ExternalData : register(b0)
 {
@@ -66,9 +66,9 @@ PS_Output main(VertexToPixelMain input) : SV_TARGET
 		specularColor);
 
 	float3 finalLight = float3(0, 0, 0);
-	finalLight = whiteLight;
 	//finalLight = whiteLight;
-	/*for (int i = 0; i < 1; i++)
+	finalLight = whiteLight;
+	for (int i = 0; i < MAX_LIGHTS; i++)
 	{
 		finalLight += FinalValueCalculation(
 			input.normal,
@@ -80,7 +80,11 @@ PS_Output main(VertexToPixelMain input) : SV_TARGET
 			roughness,
 			metalness,
 			specularColor);
-	}*/
+
+		/*finalLight.x = finalLight.x / 3;
+		finalLight.y = finalLight.y / 3;
+		finalLight.z = finalLight.z / 3;*/
+	}
 	
 	//!!!!!!!!!!!!!!!!!!! IBL Calculations !!!!!!!!!!!!!!!!!!!!
 	

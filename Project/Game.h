@@ -23,6 +23,7 @@
 #include "imgGUI/imgui_impl_win32.h"
 #include "imgGUI/imgui_impl_dx11.h"
 #include "Emitter.h"
+#include "stdlib.h"
 
 
 class Game 
@@ -62,6 +63,8 @@ private:
 	void RemoveEntity(int index);
 	void IncrementCurrentEntity();
 	void DecrementCurrentEntity();
+	float GenRandFloat();
+	float GenRandNegAndPos();
 	
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the
