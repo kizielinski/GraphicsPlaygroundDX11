@@ -4,6 +4,7 @@
 #include "SimpleShader.h"
 #include "Camera.h"
 #include "DXCore.h"
+#include "DataStruct.h"
 
 //Alignment matters here
 struct Particle {
@@ -39,6 +40,8 @@ public:
 	void Update(float dt, float currentTime);
 	void Draw(Camera* camera, float currentTime);
 	//etc
+
+	EmitterData ReturnData();
 	
 private:
 

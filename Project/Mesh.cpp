@@ -412,7 +412,8 @@ void Mesh::ASSIMPMeshLoad(const char* objFile, Microsoft::WRL::ComPtr<ID3D11Devi
 		aiProcess_Triangulate |
 		aiProcess_JoinIdenticalVertices |
 		aiProcess_SortByPType |
-	    aiProcess_ConvertToLeftHanded);
+	    aiProcess_ConvertToLeftHanded |
+		aiPostProcessSteps(aiProcess_OptimizeGraph));
 
 
 	// If the import failed, report it
@@ -421,52 +422,63 @@ void Mesh::ASSIMPMeshLoad(const char* objFile, Microsoft::WRL::ComPtr<ID3D11Devi
 	}
 
 	//Grab the first mesh in the array and build it from its vertex data
-	aiMesh* loadedMesh = scene->mMeshes[0];
+	//aiMesh* loadedMesh = scene->mMeshes[0];
+	int arraySize = scene->mNumMeshes;
 	std::vector<Vertex> vertices;
-
-	//Loop assimp verts to create vertex structs
-	for (unsigned int i = 0; i < loadedMesh->mNumVertices; i++)
-	{
-		Vertex v = {};
-		v.Position.x = loadedMesh->mVertices[i].x;
-		v.Position.y = loadedMesh->mVertices[i].y;
-		v.Position.z = loadedMesh->mVertices[i].z;
-
-		if (loadedMesh->HasNormals())
-		{
-			v.Normal.x = loadedMesh->mNormals[i].x;
-			v.Normal.x = loadedMesh->mNormals[i].y;
-			v.Normal.x = loadedMesh->mNormals[i].z;
-		}
-
-		if (loadedMesh->HasTextureCoords(0))
-		{
-			v.UV.x = loadedMesh->mTextureCoords[0][i].x;
-			v.UV.x = loadedMesh->mTextureCoords[0][i].y;
-		}
-
-		if (loadedMesh->HasTangentsAndBitangents())
-		{
-			v.Tangent.x = loadedMesh->mTangents[i].x;
-			v.Tangent.y = loadedMesh->mTangents[i].y;
-			v.Tangent.z = loadedMesh->mTangents[i].z;
-		}
-
-		vertices.push_back(v);
-	}
 
 	//Grab indices
 	std::vector<unsigned int> indices;
-	for (unsigned int f = 0; f < loadedMesh->mNumFaces; f++)
+
+	for (unsigned int i = 0; i < arraySize; i++)
 	{
-		for (unsigned int i = 0; i < loadedMesh->mFaces[f].mNumIndices; i++)
+		//Loop assimp verts to create vertex structs
+		const aiMesh* loadedMesh = scene->mMeshes[i];
+		
+		for (unsigned int j = 0; j < loadedMesh->mNumVertices; j++)
 		{
-			unsigned int index = loadedMesh->mFaces[f].mIndices[i];
-			indices.push_back(index);
+			Vertex v = {};
+			v.Position.x = loadedMesh->mVertices[j].x;
+			v.Position.y = loadedMesh->mVertices[j].y;
+			v.Position.z = loadedMesh->mVertices[j].z;
+
+			if (loadedMesh->HasNormals())
+			{
+				v.Normal.x = loadedMesh->mNormals[j].x;
+				v.Normal.y = loadedMesh->mNormals[j].y;
+				v.Normal.z = loadedMesh->mNormals[j].z;
+			}
+
+			if (loadedMesh->HasTextureCoords(0))
+			{
+				v.UV.x = loadedMesh->mTextureCoords[0][j].x;
+				v.UV.y = loadedMesh->mTextureCoords[0][j].y;
+			}
+
+			if (loadedMesh->HasTangentsAndBitangents())
+			{
+				v.Tangent.x = loadedMesh->mTangents[j].x;
+				v.Tangent.y = loadedMesh->mTangents[j].y;
+				v.Tangent.z = loadedMesh->mTangents[j].z;
+			}
+
+			vertices.push_back(v);
 		}
 	}
 
-	InitializeBuffers(&vertices[0], vertices.size(), &indices[0], indices.size(), device, false);
+	for (unsigned int g = 0; g < arraySize; g++)
+	{
+		const aiMesh* loadedMesh = scene->mMeshes[g];
+		for (unsigned int f = 0; f < loadedMesh->mNumFaces; f++)
+		{
+			const aiFace& face = loadedMesh->mFaces[f];
+			assert(face.mNumIndices == 3);
+			indices.push_back(face.mIndices[0]);
+			indices.push_back(face.mIndices[1]);
+			indices.push_back(face.mIndices[2]);
+		}
+	}
+	
+	InitializeBuffers(&vertices[0], vertices.size(), &indices[0], indices.size(), device, true);
 }
 
 Mesh::~Mesh()

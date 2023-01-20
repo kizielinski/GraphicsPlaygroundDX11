@@ -75,6 +75,8 @@ Game::Game(HINSTANCE hInstance)
 	defaultTint = { 0, 0, 0, 0 };
 	ambientColor = { 0, 0, 0 };
 	valueToRotate = 0;
+
+	dm = new DataManager(entityWindow, liveEntities, lights, emitters);
 }
 
 // --------------------------------------------------------
@@ -103,6 +105,7 @@ Game::~Game()
 	liveEntities.clear();
 	myMeshes.clear();
 	staticColors.clear();
+	lights.clear();
 	
 	delete camera;
 	delete vertexShader;
@@ -169,8 +172,6 @@ void Game::Init()
 	// geometry to draw and some simple camera matrices.
 	LoadLighting();
 	LoadShaders();
-
-	wstring baseSky = L"../../Assets/CubeMapTextures/SunMap.dds";
 	LoadCubeMap(baseSky);
 
 	//My implementation takes into account each newly created object, so the renderer must be initialized fist and then updated with each new entity.
@@ -195,66 +196,67 @@ void Game::LoadLighting()
 
 	lights.emplace("defaultLight", LightObject(
 		DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), //Color
-		DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f), //Direction
-		DirectX::XMFLOAT3(2.0f, 4.0f, 0.0f), //Position
+		DirectX::XMFLOAT3(1.0f, -1.0f, 0.0f), //Direction
+		DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), //Position
 		1.0f,
-		1
+		0
 	));
 	lightCounter++;
 
-	//Upwards
-	lights.emplace("upwardsLight", LightObject(
-		DirectX::XMFLOAT3(0.0f, 0.8f, 0.0f),
-		DirectX::XMFLOAT3(1.0f, 1.0f, 0.0f),
-		DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
-		1.0f,
-		1
-	));
-	lightCounter++;
+	////Upwards
+	//lights.emplace("upwardsLight", LightObject(
+	//	DirectX::XMFLOAT3(0.0f, 0.8f, 0.0f),
+	//	DirectX::XMFLOAT3(1.0f, 1.0f, 0.0f),
+	//	DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+	//	1.0f,
+	//	0
+	//));
+	//lightCounter++;
 
-	//Diagonal
-	lights.emplace("diagonalLight", LightObject(
-		DirectX::XMFLOAT3(1.0f, 0.01f, 0.01f),
-		DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
-		DirectX::XMFLOAT3(2.0f, 3.0f, 0.0f),
-		1.0f,
-		1
-	));
-	lightCounter++;
+	////Diagonal
+	//lights.emplace("diagonalLight", LightObject(
+	//	DirectX::XMFLOAT3(1.0f, 0.01f, 0.01f),
+	//	DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+	//	DirectX::XMFLOAT3(2.0f, 3.0f, 0.0f),
+	//	1.0f,
+	//	0
+	//));
+	//lightCounter++;
 
-	//GreyLight
-	lights.emplace("greyLight", LightObject(
-		DirectX::XMFLOAT3(0.8f, 0.8f, 0.01f),
-		DirectX::XMFLOAT3(-0.2f, 1.0f, -0.5f),
-		DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
-		1.0f,
-		1
-	));
-	lightCounter++;
+	////BlueLight
+	//lights.emplace("blueLight", LightObject(
+	//	DirectX::XMFLOAT3(0.01f, 0.01f, 1.0f),
+	//	DirectX::XMFLOAT3(-1.0f, 1.0f, 0.0f),
+	//	DirectX::XMFLOAT3(-2.0f, 0.0f, -3.0f),
+	//	1.0f,
+	//	0
+	//));
+	//lightCounter++;
 
-	//RedLight
-	lights.emplace("redLight", LightObject(
-		DirectX::XMFLOAT3(1.0f, 0.01f, 0.01f),
-		DirectX::XMFLOAT3(-0.2f, -1.0f, 0.5f),
-		DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
-		1.0f,
-		1
-	));
-	lightCounter++;
+	////RedLight
+	//lights.emplace("redLight", LightObject(
+	//	DirectX::XMFLOAT3(1.0f, 0.01f, 0.01f),
+	//	DirectX::XMFLOAT3(-1.0f, -1.0f, 0.0f),
+	//	DirectX::XMFLOAT3(2.0f, 0.0f, -3.0f),
+	//	1.0f,
+	//	0
+	//));
+	//lightCounter++;
 
-	for (int l = lightCounter; l < 64; l++)
+	/*for (int l = lightCounter; l < 64; l++)
 	{
 		std::string name = "randomLight" + std::to_string(lightCounter);
 		lights.emplace(name, LightObject(
 			DirectX::XMFLOAT3(GenRandFloat(), GenRandFloat(), GenRandFloat()),
 			DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
-			DirectX::XMFLOAT3(1.0f, 1.0f, 0.0f),
-			//DirectX::XMFLOAT3(GenRandNegAndPos() * 10, GenRandNegAndPos() * 10, GenRandNegAndPos() * 10),
-			0.08f,
-			GenRandFloat()
+			DirectX::XMFLOAT3(GenRandNegAndPos() * 20, GenRandNegAndPos() * 20, GenRandNegAndPos() * 20),
+			GenRandFloat(),
+			1
 		));
 		lightCounter++;
-	}
+	}*/
+
+	int z = 0;
 }
 
 //Gen rand float for colors 0.0f to 1.0f
@@ -386,10 +388,11 @@ void Game::CreateComputeShaderTexture()
 //Creates our textures from hard memory.
 void Game::LoadTextures(GraphicData newData)
 {
-	inputAlbedo.Detach();
-	inputNormal.Detach();
-	inputRough.Detach();
-	inputMetal.Detach();
+	int x = 0;
+	//inputAlbedo.Detach();
+	//inputNormal.Detach();
+	//inputRough.Detach();
+	//inputMetal.Detach();
 
 	CreateWICTextureFromFile(
 		device.Get(), //Allows creation of resource
@@ -546,7 +549,7 @@ void Game::CreateIBLScene()
 	baseData.meshPath = "../../Assets/sphere.obj";
 	baseData.albedoPath = L"../../Assets/particles/minimush.png";
 	//baseData.albedoPath = L"../../Assets/defaultTextures/defaultAlbedo.png";
-	baseData.normalPath = L"../../Assets/defaultTextures/default_normal.jpeg";
+	baseData.normalPath = L"../../Assets/defaultTextures/default_normal.jpg";
 	baseData.roughPath = L"../../Assets/defaultTextures/defaultRoughness.png";
 	baseData.metalPath = L"../../Assets/defaultTextures/defaultMetal_nonmetal.png";
 	EntityPosition entityPosition = { 0, 0, 0 };
@@ -558,7 +561,7 @@ void Game::CreateIBLScene()
 		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
 		entityPosition = { -5, 1, 4 };
 		liveEntities[0]->SetPositionDataStruct(entityPosition);
-		//liveEntities[0]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
+		liveEntities[0]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
 		liveEntities[0]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
 		liveEntities[0]->GetMaterial()->CustomTextureSet(device, 2, 255, 255, 255, 255); //Metal
 		liveEntities[0]->GetMaterial()->CustomTextureSet(device, 3, 0, 0, 0, 255); //Rough
@@ -592,7 +595,7 @@ void Game::CreateIBLScene()
 		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
 		entityPosition = { -5, -1, 4 };
 		liveEntities[3]->SetPositionDataStruct(entityPosition);
-		liveEntities[3]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
+		liveEntities[3]->GetMaterial()->CustomTextureSet(device, 0, 125, 125, 125, 255); //Abledo
 		liveEntities[3]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
 		liveEntities[3]->GetMaterial()->CustomTextureSet(device, 2, 0, 0, 0, 255); //Metal
 		liveEntities[3]->GetMaterial()->CustomTextureSet(device, 3, 0, 0, 0, 255); //Rough
@@ -602,7 +605,7 @@ void Game::CreateIBLScene()
 		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
 		entityPosition = { 0, -1, 4 };
 		liveEntities[4]->SetPositionDataStruct(entityPosition);
-		liveEntities[4]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
+		liveEntities[4]->GetMaterial()->CustomTextureSet(device, 0, 125, 125, 125, 255); //Abledo
 		liveEntities[4]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
 		liveEntities[4]->GetMaterial()->CustomTextureSet(device, 2, 0, 0, 0, 255); //Metal
 		liveEntities[4]->GetMaterial()->CustomTextureSet(device, 3, 63, 63, 63, 255); //Rough
@@ -612,7 +615,7 @@ void Game::CreateIBLScene()
 		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
 		entityPosition = { 5, -1, 4 };
 		liveEntities[5]->SetPositionDataStruct(entityPosition);
-		liveEntities[5]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
+		liveEntities[5]->GetMaterial()->CustomTextureSet(device, 0, 125, 125, 125, 255); //Abledo
 		liveEntities[5]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
 		liveEntities[5]->GetMaterial()->CustomTextureSet(device, 2, 0, 0, 0, 255); //Metal
 		liveEntities[5]->GetMaterial()->CustomTextureSet(device, 3, 127, 127, 127, 255); //Rough
@@ -623,7 +626,7 @@ void Game::CreateIBLScene()
 		//Entity Seven
 		CreateEntity(baseData, true);
 		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
-		entityPosition = { 1, 1, 2.5 };
+		entityPosition = { 10, -1, 4 };
 		liveEntities[6]->SetPositionDataStruct(entityPosition);
 		liveEntities[6]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
 		liveEntities[6]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
@@ -636,7 +639,7 @@ void Game::CreateIBLScene()
 #pragma region Emitters
 		LoadEmitterTexture(L"../../Assets/particles/circle_04.png");
 		Emitter* em = new Emitter(50, 1, 5, particleVS, particlePS, device, context, tempParticleTextureSRV, 
-			XMFLOAT3(-8, 0, 0), 
+			XMFLOAT3(-50, 0, 0), 
 			XMFLOAT3(-1, 0, 0), 
 			XMFLOAT3(-0.5f, 0, 0), 
 			1);
@@ -644,7 +647,7 @@ void Game::CreateIBLScene()
 
 		LoadEmitterTexture(L"../../Assets/particles/smoke_10.png");
 		em = new Emitter(300, 6, 5, particleVS, particlePS, device, context, tempParticleTextureSRV, 
-			XMFLOAT3(-4, 0, 0),
+			XMFLOAT3(-40, 0, 0),
 			XMFLOAT3(0, 0, 0),
 			XMFLOAT3(0, 0, 0),
 			0);
@@ -652,23 +655,23 @@ void Game::CreateIBLScene()
 
 		LoadEmitterTexture(L"../../Assets/particles/spark_01.png");
 		em = new Emitter(400, 8, 5, particleVS, particlePS, device, context, tempParticleTextureSRV, 
-			XMFLOAT3(0, 0, 0), 
-			XMFLOAT3(5, 2, 0), 
-			XMFLOAT3(1, 1, 0), 
+			XMFLOAT3(-30, 0, 0), 
+			XMFLOAT3(1, 2, 0), 
+			XMFLOAT3(0, 2, 0), 
 			2);
 		emitters.push_back(em);
 
 		LoadEmitterTexture(L"../../Assets/particles/light_01.png");
 		em = new Emitter(100, 4, 12, particleVS, particlePS, device, context, tempParticleTextureSRV,
-			XMFLOAT3(8, 1, 0), 
+			XMFLOAT3(-90, 1, 0), 
 			XMFLOAT3(8, 0, 4), 
-			XMFLOAT3(0.7f, 0, 0), 
+			XMFLOAT3(0.7f, 0, 0),
 			3);
 		emitters.push_back(em);
 
 		LoadEmitterTexture(L"../../Assets/particles/star_07.png");
-		em = new Emitter(15, 3, 8, particleVS, particlePS, device, context, tempParticleTextureSRV, 
-			XMFLOAT3(0, -6, 0), 
+		em = new Emitter(10, 1, 30, particleVS, particlePS, device, context, tempParticleTextureSRV, 
+			XMFLOAT3(-80, -6, 0), 
 			XMFLOAT3(3, 3, 3), 
 			XMFLOAT3(1, 1, 1), 
 			4);
@@ -845,7 +848,14 @@ void Game::HandleUIActions()
 	if (entityWindow.CanApplySky())
 	{
 		ChangeCubeMap(entityWindow.ReturnSkyPath());
+		wstring skyPath = entityWindow.ReturnSkyPath();
 		entityWindow.SkyApplied();
+	}
+
+	if (entityWindow.SaveScene())
+	{
+		dm->ConvertSceneToData();
+		entityWindow.SceneSaved();
 	}
 
 	currentIndex = currentRender->ReturnCurrentEntityIndex();

@@ -11,7 +11,7 @@ class Mesh
 public:
 	Mesh(Vertex* vertices, int numVertices, unsigned int* indices, int numIndices, Microsoft::WRL::ComPtr<ID3D11Device> device);
 	
-	Mesh(const char* objFile, Microsoft::WRL::ComPtr<ID3D11Device> device, bool useASSIMP = false);
+	Mesh(const char* objFile, Microsoft::WRL::ComPtr<ID3D11Device> device, bool useASSIMP = true);
 	~Mesh();
 	Microsoft::WRL::ComPtr<ID3D11Buffer> GetVertexBuffer(); //Returns vBuff pointer
 	Microsoft::WRL::ComPtr<ID3D11Buffer> GetIndexBuffer(); //Returns iBuff pointer

@@ -25,6 +25,8 @@ public:
 	bool CanRemoveChild();
 	void NewEntityFinished();
 	void ReleaseKeyLock();
+	bool SaveScene();
+	void SceneSaved();
 
 	//Organization of various ImGui elements
 	void ObjectInspector();
@@ -53,6 +55,7 @@ private:
 	bool keyLock;
 	bool addChild;
 	bool removeChild;
+	bool saveScene;
 	float translationOffset[3];
 	ImGuiIO io;
 
@@ -61,5 +64,6 @@ private:
 	void ApplyButton();
 	void RemoveEntityButton();
 	void NewEntityButton();
+	void SaveSceneButton();
 };
 

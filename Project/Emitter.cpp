@@ -188,6 +188,20 @@ void Emitter::Draw(Camera* camera, float currentTime)
 	context->DrawIndexed(particlesAliveCount * 6, 0, 0);
 }
 
+EmitterData Emitter::ReturnData()
+{
+	EmitterData data;	
+	data.acceleration = acceleration;
+	data.emissionRate = emissionRate;
+	data.emissionDelay = emissionDelay;	
+	data.maxParticles = maxParticles;
+	data.particleType = particleType;
+	data.posOffset = posOffset;
+	data.timeBetweenParticles = timeBetweenParticleEmissions;	
+	data.velocity = velocity;
+	return data;
+}
+
 void Emitter::UpdateSingleParticle(float currentTime, int indexToUpdate)
 {
 	float age = currentTime - particles[indexToUpdate].EmitTime;

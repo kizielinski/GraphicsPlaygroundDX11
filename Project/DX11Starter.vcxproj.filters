@@ -90,6 +90,9 @@
     <ClCompile Include="LightObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DataManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vertex.h">
@@ -173,6 +176,9 @@
     <ClInclude Include="LightObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DataManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PixelShader.hlsl">
@@ -215,6 +221,9 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="ComputeShaderBase.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowsVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

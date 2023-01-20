@@ -67,7 +67,7 @@ PS_Output main(VertexToPixelMain input) : SV_TARGET
 
 	float3 finalLight = float3(0, 0, 0);
 	//finalLight = whiteLight;
-	finalLight = whiteLight;
+	//finalLight = whiteLight;
 	for (int i = 0; i < MAX_LIGHTS; i++)
 	{
 		finalLight += FinalValueCalculation(

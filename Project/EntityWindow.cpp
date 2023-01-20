@@ -10,6 +10,7 @@ EntityWindow::EntityWindow()
 	updateSky = false;
 	addChild = false;
 	removeChild = false;
+	saveScene = false;
 	myEntityData = EntityDef(); //Stop vs complaining
 }
 
@@ -40,23 +41,30 @@ void EntityWindow::BrowseButton(std::string browseName)
 				{
 					PWSTR pszFilePath;
 					hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
-					hr = pItem->GetDisplayName(SIGDN_PARENTRELATIVE, &pszFilePath);
-
 					if (SUCCEEDED(hr))
 					{
 						//Setup paths
 						std::wstring ws(pszFilePath);
-						std::wstring texturePath = L"../../Assets/Textures/";
+						std::wstring texturePath = L"../../";
 						std::wstring skyPath = L"../../Assets/CubeMapTextures/";
 						std::string newMeshPath = "../../Assets/";
-						texturePath += ws;
+
+						std::wstring findString = L"Assets";
+						size_t pathIndex = ws.find(findString);
+						
+						texturePath += ws.substr(pathIndex);
 						
 						switch (browseName[0])
 						{
 						case 'M':
-							newMeshPath += std::string(ws.begin(), ws.end());
-							meshPath = newMeshPath;
-							std::cout << meshPath << std::endl;
+							hr = pItem->GetDisplayName(SIGDN_PARENTRELATIVE, &pszFilePath);
+							if (SUCCEEDED(hr))
+							{
+								std::wstring objWS(pszFilePath);
+								newMeshPath += std::string(objWS.begin(), objWS.end());
+								meshPath = newMeshPath;
+								std::cout << meshPath << std::endl;
+							}
 							break;
 						case 'A':
 							albedoPath = texturePath;
@@ -73,6 +81,7 @@ void EntityWindow::BrowseButton(std::string browseName)
 						case 'S':
 							skyPath += ws;
 							skyMapPath = skyPath;
+							//skyMapPath += L".dds";
 							break;
 						default:
 							break;
@@ -126,12 +135,30 @@ void EntityWindow::ReleaseKeyLock()
 	keyLock = true;
 }
 
+bool EntityWindow::SaveScene()
+{
+	return saveScene;
+}
+
+void EntityWindow::SceneSaved()
+{
+	saveScene = false;
+}
+
 void EntityWindow::NewEntityButton()
 {
 	if (ImGui::Button("New Object"))
 	{
 		newEntity = true;
 		SetData();
+	}
+}
+
+void EntityWindow::SaveSceneButton()
+{
+	if (ImGui::Button("Save Scene"))
+	{
+		saveScene = true;
 	}
 }
 
@@ -357,6 +384,7 @@ void EntityWindow::DisplayWindow(HWND windowHandle, int width, int height)
 		RemoveChildButton();
 
 		BrowseButton("SkyMap");
+		SaveSceneButton();
 		ImGui::SameLine();
 		ApplySky();
 		ImGui::TextWrapped("Hover Mouse and Press W to close Menu");

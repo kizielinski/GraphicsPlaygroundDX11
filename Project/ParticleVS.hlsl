@@ -22,7 +22,7 @@ struct VertexToPixel
 	float4 position : SV_POSITION;
 	float2 uv		: TEXCOORD0;
 	float  particleType : PSIZE; //Just to pass particle type over as a float
-	float age           : PSIZE; //Just to pass age to PS
+	float  age          : PSIZE; //Just to pass age to PS
 };
 
 VertexToPixel main(uint id : SV_VertexID)
@@ -40,27 +40,25 @@ VertexToPixel main(uint id : SV_VertexID)
 
 	//Calculate other particle data here (switch statement?)
 
-	
-
 	switch (p.ParticleType)
 	{
 	case 0:
-		pos = pos + age * float3(0, 2.0f, 0);
+		//pos = pos + age * float3(0, 10.0f, 0);
 		break;
 	case 1:
-		pos = p.Accel * age * age / 2.0f + p.Velocity * age + p.StartPos;
+		//pos = p.Accel * age * age / 2.0f + p.Velocity * age + p.StartPos;
 		break;
 	case 2:
-		pos = (p.Accel + p.Velocity) * age + pos;
-		pos.x = (age* 10) % 3;
+		//pos.x = ((p.Accel.x + pos.x) * age/4) - 10;
 		break;
 	case 3:
-		pos.z = pos.z + p.Accel.z;
-		pos.y = (age * -2) % 3;
-		pos.x = pos + p.Velocity * age;
+		//pos.z = pos.z + p.Accel.z;
+		//pos.y = (age * -2) % 3;
+		//pos.x = pos.x + p.Velocity * age;
 		break;
 	case 4:
-		pos.x = sin(age);
+		pos.x = cos(age) * 3 + pos.x;
+		pos.y = sin(2*age) * 3/2; 
 		break;
 	}
 

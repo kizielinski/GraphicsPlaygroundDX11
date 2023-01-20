@@ -23,6 +23,7 @@
 #include "imgGUI/imgui_impl_win32.h"
 #include "imgGUI/imgui_impl_dx11.h"
 #include "Emitter.h"
+#include "DataManager.h"
 #include "stdlib.h"
 
 
@@ -125,6 +126,7 @@ private:
 	int currentIndex;
 
 	SkyMap* sky;
+	wstring baseSky = L"../../Assets/CubeMapTextures/SpaceMap.dds";
 
 	//Renderer
 	Renderer* currentRender;
@@ -174,4 +176,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> computeTextureSRV;
 	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> computeTextureUAV;
 	void CreateComputeShaderTexture();
+
+	//Data Manager for reading in a scene
+	DataManager* dm;
 };

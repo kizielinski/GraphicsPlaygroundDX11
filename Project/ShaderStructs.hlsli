@@ -83,6 +83,12 @@ struct VertexToPixelSky
 	float3 sampleDir : DIRECTION;
 };
 
+// VStoPS struct for shadow map creation
+struct VertexToPixel_Shadow
+{
+	float4 screenPosition	: SV_POSITION;
+};
+
 float3 RawNormalMapData(Texture2D map, SamplerState samp, float2 uv)
 {
 	return map.Sample(samp, uv).rgb * 2.0f - 1.0f;
@@ -143,10 +149,10 @@ float3 ViewVector(float3 camPos, float3 worldPos)
 //Range function for light fades
 float Attenuate(Light light, float3 worldPos)
 {
-	float distance = (light.position, worldPos);
+	float dist = distance(light.position, worldPos);
 
 	//Ranged-based attentuation
-	float attenuation = saturate(1.0f - (distance * distance / (light.range * light.range)));
+	float attenuation = saturate(1.0f - (dist * dist / (light.range * light.range)));
 
 	//Softer value
 	return attenuation * attenuation;
@@ -188,7 +194,7 @@ float3 FinalValueCalculation(float3 normal, float3 worldPos, float3 camPos, Ligh
 		float3 toPointLight = normalize(tempLight.position - worldPos);
 		float3 toPointCam = normalize(camPos - worldPos);
 
-		attenuation = (tempLight, worldPos);
+		attenuation = Attenuate(tempLight, worldPos);
 		
 		diffPreBalance = DiffusePBR(normal, toPointLight);
 
@@ -199,8 +205,8 @@ float3 FinalValueCalculation(float3 normal, float3 worldPos, float3 camPos, Ligh
 		balancedDiff = DiffuseEnergyConserve(diffPreBalance, spec, metalness);
 
 		//Calculate final color
-		finalColor = (balancedDiff * surfaceColor + spec) * tempLight.intensity * tempLight.color;
-		break;
+		finalColor = (balancedDiff * surfaceColor + spec) * attenuation *tempLight.intensity * tempLight.color;
+		break; 
 	}
 
 	return finalColor;
