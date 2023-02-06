@@ -15,7 +15,7 @@ public:
 		DirectX::XMFLOAT3 position,
 		float intensity,
 		float lightType,
-		float range = 1
+		float range = 10
 	);
 	LightObject(Light newLight);
 	~LightObject();

@@ -54,7 +54,7 @@ PS_Output main(VertexToPixelMain input) : SV_TARGET
 	float3 specularColor = lerp(F0_NON_METAL.rrr, albedo.rgb, metalness);
 
 	//Test white light
-	float3 whiteLight = FinalValueCalculation(
+	float3 whiteLight = AddLightCalculation(
 		input.normal, 
 		input.worldPos, 
 		camPosition, 
@@ -66,11 +66,11 @@ PS_Output main(VertexToPixelMain input) : SV_TARGET
 		specularColor);
 
 	float3 finalLight = float3(0, 0, 0);
-	//finalLight = whiteLight;
-	//finalLight = whiteLight;
+
+	finalLight = whiteLight;
 	for (int i = 0; i < MAX_LIGHTS; i++)
 	{
-		finalLight += FinalValueCalculation(
+		finalLight += AddLightCalculation(
 			input.normal,
 			input.worldPos,
 			camPosition,

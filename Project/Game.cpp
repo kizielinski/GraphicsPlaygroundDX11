@@ -197,9 +197,9 @@ void Game::LoadLighting()
 	lights.emplace("defaultLight", LightObject(
 		DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), //Color
 		DirectX::XMFLOAT3(1.0f, -1.0f, 0.0f), //Direction
-		DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), //Position
-		1.0f,
-		0
+		DirectX::XMFLOAT3(2.0f, 0.0f, 0.0f), //Position
+		8.0f,
+		2
 	));
 	lightCounter++;
 
@@ -243,7 +243,7 @@ void Game::LoadLighting()
 	//));
 	//lightCounter++;
 
-	/*for (int l = lightCounter; l < 64; l++)
+	for (int l = lightCounter; l < 64; l++)
 	{
 		std::string name = "randomLight" + std::to_string(lightCounter);
 		lights.emplace(name, LightObject(
@@ -254,9 +254,7 @@ void Game::LoadLighting()
 			1
 		));
 		lightCounter++;
-	}*/
-
-	int z = 0;
+	}
 }
 
 //Gen rand float for colors 0.0f to 1.0f
@@ -547,8 +545,8 @@ void Game::CreateSpaceScene()
 void Game::CreateIBLScene()
 {
 	baseData.meshPath = "../../Assets/sphere.obj";
-	baseData.albedoPath = L"../../Assets/particles/minimush.png";
-	//baseData.albedoPath = L"../../Assets/defaultTextures/defaultAlbedo.png";
+	//baseData.albedoPath = L"../../Assets/particles/minimush.png";
+	baseData.albedoPath = L"../../Assets/defaultTextures/defaultAlbedo.png";
 	baseData.normalPath = L"../../Assets/defaultTextures/default_normal.jpg";
 	baseData.roughPath = L"../../Assets/defaultTextures/defaultRoughness.png";
 	baseData.metalPath = L"../../Assets/defaultTextures/defaultMetal_nonmetal.png";
