@@ -194,14 +194,14 @@ void Game::LoadLighting()
 
 	ambientColor = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
 
-	lights.emplace("defaultLight", LightObject(
-		DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), //Color
-		DirectX::XMFLOAT3(1.0f, -1.0f, 0.0f), //Direction
-		DirectX::XMFLOAT3(2.0f, 0.0f, 0.0f), //Position
-		8.0f,
-		2
-	));
-	lightCounter++;
+	//lights.emplace("defaultLight", LightObject(
+	//	DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), //Color
+	//	DirectX::XMFLOAT3(1.0f, -1.0f, 0.0f), //Direction
+	//	DirectX::XMFLOAT3(2.0f, 0.0f, 0.0f), //Position
+	//	8.0f,
+	//	1
+	//));
+	//lightCounter++;
 
 	////Upwards
 	//lights.emplace("upwardsLight", LightObject(
@@ -386,7 +386,6 @@ void Game::CreateComputeShaderTexture()
 //Creates our textures from hard memory.
 void Game::LoadTextures(GraphicData newData)
 {
-	int x = 0;
 	//inputAlbedo.Detach();
 	//inputNormal.Detach();
 	//inputRough.Detach();

@@ -79,9 +79,13 @@ void EntityWindow::BrowseButton(std::string browseName)
 							metalPath = texturePath;
 							break;
 						case 'S':
-							skyPath += ws;
-							skyMapPath = skyPath;
-							//skyMapPath += L".dds";
+							hr = pItem->GetDisplayName(SIGDN_PARENTRELATIVE, &pszFilePath);
+							if (SUCCEEDED(hr))
+							{
+								std::wstring fileSky(pszFilePath);
+								skyPath += fileSky;
+								skyMapPath += skyPath;
+							}
 							break;
 						default:
 							break;

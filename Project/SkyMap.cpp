@@ -50,8 +50,6 @@ SkyMap::SkyMap(
 	IBLCreateIrradianceMap(fullscreenVS, irradiancePS);
 	IBLCreateConvolvedSpecularMap(fullscreenVS, specularConPS);
 	IBLCreateBRDFLookUpTexture(fullscreenVS, lookUpTexturePS);
-
-	//irraIBLCubeMap.CopyTo(cubeSRV.GetAddressOf());
 }
 
 SkyMap::~SkyMap()
