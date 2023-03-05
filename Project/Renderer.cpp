@@ -85,6 +85,12 @@ Renderer::~Renderer()
 {
 	pixelShader = nullptr;
 	vertexShader = nullptr;
+	finalOutputPS = nullptr;
+	finalCombinePS = nullptr;
+	fullScreenVS = nullptr;
+	refractionPS = nullptr;
+	
+	mySkyBox = nullptr;
 }
 
 void Renderer::Update(float deltaTime, float totalTime)
@@ -95,13 +101,16 @@ void Renderer::Order()
 {
 }
 
-//Render all lights and objects in one go.
+// Render all lights and game objects in one go.
 void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindow* eW, HWND windowHandle)
 {
-	SimplePixelShader* temp;
-	//Once per frame, you're resetting the window
-	// Background color (Cornflower Blue in this case) for clearing
+	SimplePixelShader* sPixelShader;
+
+	// Once per frame, you're resetting the window
+	// Background color (Black in this case) for clearing
 	const float color[4] = { 0, 0, 0, 0 };
+
+	// Clear my RTVs
 	context->ClearRenderTargetView(backBufferRTV.Get(), color);
 	context->ClearRenderTargetView(sceneColorRTV.Get(), color);
 	context->ClearRenderTargetView(sceneAmbientColorRTV.Get(), color);
@@ -115,7 +124,7 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 		1.0f,
 		0);
 
-	//Setup RTVs
+	// Setup RTVs
 	ID3D11RenderTargetView* renderTargets[4] = {};
 	renderTargets[0] = sceneColorRTV.Get();
 	renderTargets[1] = sceneAmbientColorRTV.Get();
@@ -126,39 +135,39 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 	
 	DrawPointLights(cam);
 
-	// Collect all refractive entities for after the final combine.
+	// Collect all refractive entities for after the final texture combination.
 	std::vector<Entity*> refractiveEntities;
 
-	//for (int i = 0; i < entities.size(); i++)
 	for(auto gameEntity : entities)
 	{
+		// Checks if entity is refractive
 		if (gameEntity->GetMaterial()->IsRefractive())
 		{
 			refractiveEntities.push_back(gameEntity);
-			continue; //Beaks one iteration of the loop and moves onto next
+			continue; 
 		}
 		else 
 		{
-			temp = gameEntity->GetMaterial()->GetPixelShader();
-			temp->SetInt("SpecIBLTotalMipLevels", mySkyBox->ReturnCalculatedMipLevels());
-			temp->SetShaderResourceView("BrdfLookUpMap", mySkyBox->ReturnLookUpTexture());
-			temp->SetShaderResourceView("IrradianceIBLMap", mySkyBox->ReturnIrradianceCubeMap());
-			temp->SetShaderResourceView("SpecularIBLMap", mySkyBox->ReturnConvolvedSpecularCubeMap());
+			// Handles normal entity rendering using IBL lighting
+			sPixelShader = gameEntity->GetMaterial()->GetPixelShader();
+			sPixelShader->SetInt("SpecIBLTotalMipLevels", mySkyBox->ReturnCalculatedMipLevels());
+			sPixelShader->SetShaderResourceView("BrdfLookUpMap", mySkyBox->ReturnLookUpTexture());
+			sPixelShader->SetShaderResourceView("IrradianceIBLMap", mySkyBox->ReturnIrradianceCubeMap());
+			sPixelShader->SetShaderResourceView("SpecularIBLMap", mySkyBox->ReturnConvolvedSpecularCubeMap());
 			gameEntity->DrawEntity(context, cam);
 		}
 	}
 
-	//! Sky Draw gets clumped with RenderTarget[0] not sure how to stop this from happening
-	//! Tried to separate it manually by setting RenderTarget[0] = 0; and calling OMSetRenderTargets(...),
-	//! but it didn't have any effect. Only bug in this version of Renderer.cpp.
+	/* [IMPORTANT]
+	 * Sky Draw gets clumped with RenderTarget[0] not sure how to stop this from happening
+	 * Tried to separate it manually by setting RenderTarget[0] = 0; and calling OMSetRenderTargets(...),
+	 * but it didn't have any effect. Only bug in this version of Renderer.cpp.
+	 */
 	mySkyBox->SkyDraw(context.Get(), cam);
-	//!!!!!!!!!
 
 	fullScreenVS->SetShader();
 
-	//Separated these out like the Professor did for readability and
-	//eventual extensibility into SSAO and beyond.
-	//Final Combine
+	// Final Combine
 	{
 		renderTargets[0] = finalRTV.Get();
 		context->OMSetRenderTargets(1, renderTargets, 0);
@@ -166,6 +175,7 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 		finalCombinePS->SetShaderResourceView("finalTextureColor", sceneColorSRV.Get());
 		finalCombinePS->SetShaderResourceView("finalTextureAmbient", sceneAmbientColorSRV.Get());
 		finalCombinePS->SetSamplerState("basicSampler", samplerOptions.Get());
+
 		//Fullscreen triangle render
 		context->Draw(3, 0);
 	}
@@ -181,29 +191,30 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 		context->Draw(3, 0);
 	}
 
-	//Handle Refraction calculation (basic no Silhouettes yet)
+	// Handle Refraction calculation (basic no Silhouettes yet)
 	{
-		// if (useRefracSilhouette) {} <-----No refractive silhouttes yet, gonna fix rendering class organization first.
+		// No refractive silhouttes, fix rendering class organization first.
+		// if (useRefracSilhouette) {...} 
 
-		//Loop and draw refractive objects
+		// Loop and draw refractive objects
 		{
 			renderTargets[0] = backBufferRTV.Get();
 			context->OMSetRenderTargets(1, renderTargets, depthBufferDSV.Get());
 
 			for (auto refracGE : refractiveEntities)
 			{
-				//Material* material = refracGE->GetMaterial().get(); <--------This creates a dangling pointer
+				// Material* material = refracGE->GetMaterial().get(); <--------This creates a dangling pointer
 				SimplePixelShader* prevPS = refracGE->GetMaterial().get()->GetPixelShader(); 
 				vertexShader->SetShader();
 				refracGE->GetMaterial().get()->SetPixelShader(refractionPS);
 
-				//Material Prep? Idk if I need this
+				// Material Prep? Idk if I need this
 				refracGE->GetMaterial().get()->PrepMaterialForDraw(refracGE->GetTransform(), cam);
 
-				//Setup the basic VertexShader stuff.
+				// Setup the basic VertexShader stuff.
 				refractionPS->SetSamplerState("basicSampler", samplerOptions);
 
-				//Setup Refraction data
+				// Setup Refraction data
 				refractionPS->SetMatrix4x4("viewMatrix", cam->GetViewMatrix());
 				refractionPS->SetMatrix4x4("projMatrix", cam->GetProjectionMatrix());
 				refractionPS->SetFloat2("screenSize", XMFLOAT2((float)windowWidth, (float)windowHeight));
@@ -214,19 +225,19 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 				refractionPS->SetFloat("refractionScale", refracScale);
 				refractionPS->CopyBufferData("perObject");
 
-				//Set textures to use
+				// Set textures to use
 				refractionPS->SetShaderResourceView("ScreenPixels", finalSRV.Get());
 				refractionPS->SetShaderResourceView("NormalTexture", refracGE->GetMaterial()->NormalTexture());
 				refractionPS->SetShaderResourceView("RefractionSilhouette", refracSRV.Get());
 				refractionPS->SetShaderResourceView("EnvironmentMap", mySkyBox->ReturnSkyMapSRV());
 				
-				//// Reset "per frame" buffers <----------- I do not have these implemented yet so not using this for now
-				//context->VSSetConstantBuffers(0, 1, vsPerFrameConstantBuffer.GetAddressOf());
-				//context->PSSetConstantBuffers(0, 1, psPerFrameConstantBuffer.GetAddressOf());
-
+				/* Reset "per frame" buffers <-Not implemented yet so not using this for now
+				 * context->VSSetConstantBuffers(0, 1, vsPerFrameConstantBuffer.GetAddressOf());
+				 * context->PSSetConstantBuffers(0, 1, psPerFrameConstantBuffer.GetAddressOf());
+				 */
 				refracGE->GetMesh()->DrawUsingBuffs(context);
 
-				//Reset back to original pixelShader
+				// Reset back to original pixelShader
 				refracGE->GetMaterial().get()->SetPixelShader(prevPS);
 
 				context->Draw(3, 0);
@@ -251,7 +262,8 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 		context->OMSetBlendState(0, 0, 0xFFFFFFFF);
 		context->OMSetDepthStencilState(0, 0);
 	}
-
+	
+	//Render Window and Imgui
 	eW->DisplayWindow(windowHandle, windowWidth, windowHeight);
 	RenderWindow();
 	ImGui::Render();
@@ -276,6 +288,7 @@ void Renderer::AddSkyBox(SkyMap* sM)
 	mySkyBox = sM;
 }
 
+//Alters physical position of the entity from Entity Window information
 void Renderer::AlterPosition(EntityPosition entityPos)
 {
 	entities[currentIndex]->SetPositionDataStruct(entityPos);
@@ -361,7 +374,7 @@ void Renderer::SetUpLights(Camera* cam)
 
 	pixelShader->SetFloat3("ambientColor", ambientColor);
 
-	//pixelShader->SetFloat("specularIntensity", baseMaterial->GetSpecularIntensity()); //Need to figure out a way to grab base material
+	//pixelShader->SetFloat("specularIntensity", baseMaterial->GetSpecularIntensity()); //Rework to grab base material
 	pixelShader->SetFloat("specularIntensity", 1.0f);
 
 	pixelShader->SetFloat3("camPosition", cam->GetPosition());

@@ -66,6 +66,7 @@ private:
 	void DecrementCurrentEntity();
 	float GenRandFloat();
 	float GenRandNegAndPos();
+	bool imguiOFF = false;
 	
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the

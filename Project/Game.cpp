@@ -106,6 +106,7 @@ Game::~Game()
 	myMeshes.clear();
 	staticColors.clear();
 	lights.clear();
+	emitters.clear();
 	
 	delete camera;
 	delete vertexShader;
@@ -132,6 +133,15 @@ Game::~Game()
 	currentRender = nullptr;
 	tempEntity = nullptr;
 	sky = nullptr;
+
+	particlePS = nullptr;
+	particleVS = nullptr;
+	finalCombinePS = nullptr;
+	finalOutputPS = nullptr;
+	refractionPS = nullptr;
+	dm = nullptr;
+	currentRender = nullptr;
+
 }
 
 // --------------------------------------------------------
@@ -194,14 +204,14 @@ void Game::LoadLighting()
 
 	ambientColor = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
 
-	//lights.emplace("defaultLight", LightObject(
-	//	DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), //Color
-	//	DirectX::XMFLOAT3(1.0f, -1.0f, 0.0f), //Direction
-	//	DirectX::XMFLOAT3(2.0f, 0.0f, 0.0f), //Position
-	//	8.0f,
-	//	1
-	//));
-	//lightCounter++;
+	lights.emplace("defaultLight", LightObject(
+		DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), //Color
+		DirectX::XMFLOAT3(1.0f, -1.0f, 0.0f), //Direction
+		DirectX::XMFLOAT3(2.0f, 0.0f, 0.0f), //Position
+		8.0f,
+		1
+	));
+	lightCounter++;
 
 	////Upwards
 	//lights.emplace("upwardsLight", LightObject(
@@ -243,18 +253,18 @@ void Game::LoadLighting()
 	//));
 	//lightCounter++;
 
-	for (int l = lightCounter; l < 64; l++)
-	{
-		std::string name = "randomLight" + std::to_string(lightCounter);
-		lights.emplace(name, LightObject(
-			DirectX::XMFLOAT3(GenRandFloat(), GenRandFloat(), GenRandFloat()),
-			DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
-			DirectX::XMFLOAT3(GenRandNegAndPos() * 20, GenRandNegAndPos() * 20, GenRandNegAndPos() * 20),
-			GenRandFloat(),
-			1
-		));
-		lightCounter++;
-	}
+	//for (int l = lightCounter; l < 64; l++)
+	//{
+	//	std::string name = "randomLight" + std::to_string(lightCounter);
+	//	lights.emplace(name, LightObject(
+	//		DirectX::XMFLOAT3(GenRandFloat(), GenRandFloat(), GenRandFloat()),
+	//		DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+	//		DirectX::XMFLOAT3(GenRandNegAndPos() * 20, GenRandNegAndPos() * 20, GenRandNegAndPos() * 20),
+	//		GenRandFloat(),
+	//		1
+	//	));
+	//	lightCounter++;
+	//}
 }
 
 //Gen rand float for colors 0.0f to 1.0f
@@ -562,118 +572,118 @@ void Game::CreateIBLScene()
 		liveEntities[0]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
 		liveEntities[0]->GetMaterial()->CustomTextureSet(device, 2, 255, 255, 255, 255); //Metal
 		liveEntities[0]->GetMaterial()->CustomTextureSet(device, 3, 0, 0, 0, 255); //Rough
-
-		//EntityTwo
-		CreateEntity(baseData, false);
-		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
-		entityPosition = { 0, 1, 4 };
-		liveEntities[1]->SetPositionDataStruct(entityPosition);
-		liveEntities[1]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
-		liveEntities[1]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
-		liveEntities[1]->GetMaterial()->CustomTextureSet(device, 2, 255, 255, 255, 255); //Metal
-		liveEntities[1]->GetMaterial()->CustomTextureSet(device, 3, 63, 63, 63, 255); //Rough
-
-		//EntityThree
-		CreateEntity(baseData, false);
-		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
-		entityPosition = { 5, 1, 4 };
-		liveEntities[2]->SetPositionDataStruct(entityPosition);
-		liveEntities[2]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
-		liveEntities[2]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
-		liveEntities[2]->GetMaterial()->CustomTextureSet(device, 2, 255, 255, 255, 255); //Metal
-		liveEntities[2]->GetMaterial()->CustomTextureSet(device, 3, 127, 127, 127, 255); //Rough
-		
-#pragma endregion
-
-#pragma region PlasticObjects
-
-		//EntityFour
-		CreateEntity(baseData, false);
-		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
-		entityPosition = { -5, -1, 4 };
-		liveEntities[3]->SetPositionDataStruct(entityPosition);
-		liveEntities[3]->GetMaterial()->CustomTextureSet(device, 0, 125, 125, 125, 255); //Abledo
-		liveEntities[3]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
-		liveEntities[3]->GetMaterial()->CustomTextureSet(device, 2, 0, 0, 0, 255); //Metal
-		liveEntities[3]->GetMaterial()->CustomTextureSet(device, 3, 0, 0, 0, 255); //Rough
-
-		//EntityFive
-		CreateEntity(baseData, false);
-		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
-		entityPosition = { 0, -1, 4 };
-		liveEntities[4]->SetPositionDataStruct(entityPosition);
-		liveEntities[4]->GetMaterial()->CustomTextureSet(device, 0, 125, 125, 125, 255); //Abledo
-		liveEntities[4]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
-		liveEntities[4]->GetMaterial()->CustomTextureSet(device, 2, 0, 0, 0, 255); //Metal
-		liveEntities[4]->GetMaterial()->CustomTextureSet(device, 3, 63, 63, 63, 255); //Rough
-
-		//EntitySix
-		CreateEntity(baseData, false);
-		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
-		entityPosition = { 5, -1, 4 };
-		liveEntities[5]->SetPositionDataStruct(entityPosition);
-		liveEntities[5]->GetMaterial()->CustomTextureSet(device, 0, 125, 125, 125, 255); //Abledo
-		liveEntities[5]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
-		liveEntities[5]->GetMaterial()->CustomTextureSet(device, 2, 0, 0, 0, 255); //Metal
-		liveEntities[5]->GetMaterial()->CustomTextureSet(device, 3, 127, 127, 127, 255); //Rough
-#pragma endregion
-		
-#pragma region RefractiveObjects?
-		
-		//Entity Seven
-		CreateEntity(baseData, true);
-		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
-		entityPosition = { 10, -1, 4 };
-		liveEntities[6]->SetPositionDataStruct(entityPosition);
-		liveEntities[6]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
-		liveEntities[6]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
-		liveEntities[6]->GetMaterial()->CustomTextureSet(device, 2, 0, 0, 0, 255); //Metal
-		liveEntities[6]->GetMaterial()->CustomTextureSet(device, 3, 127, 127, 127, 255); //Rough
-
-		entityWindow.AssignTranslation(entityPosition.X, entityPosition.Y, entityPosition.Z);
-#pragma endregion
-
-#pragma region Emitters
-		LoadEmitterTexture(L"../../Assets/particles/circle_04.png");
-		Emitter* em = new Emitter(50, 1, 5, particleVS, particlePS, device, context, tempParticleTextureSRV, 
-			XMFLOAT3(-50, 0, 0), 
-			XMFLOAT3(-1, 0, 0), 
-			XMFLOAT3(-0.5f, 0, 0), 
-			1);
-		emitters.push_back(em);
-
-		LoadEmitterTexture(L"../../Assets/particles/smoke_10.png");
-		em = new Emitter(300, 6, 5, particleVS, particlePS, device, context, tempParticleTextureSRV, 
-			XMFLOAT3(-40, 0, 0),
-			XMFLOAT3(0, 0, 0),
-			XMFLOAT3(0, 0, 0),
-			0);
-		emitters.push_back(em);
-
-		LoadEmitterTexture(L"../../Assets/particles/spark_01.png");
-		em = new Emitter(400, 8, 5, particleVS, particlePS, device, context, tempParticleTextureSRV, 
-			XMFLOAT3(-30, 0, 0), 
-			XMFLOAT3(1, 2, 0), 
-			XMFLOAT3(0, 2, 0), 
-			2);
-		emitters.push_back(em);
-
-		LoadEmitterTexture(L"../../Assets/particles/light_01.png");
-		em = new Emitter(100, 4, 12, particleVS, particlePS, device, context, tempParticleTextureSRV,
-			XMFLOAT3(-90, 1, 0), 
-			XMFLOAT3(8, 0, 4), 
-			XMFLOAT3(0.7f, 0, 0),
-			3);
-		emitters.push_back(em);
-
-		LoadEmitterTexture(L"../../Assets/particles/star_07.png");
-		em = new Emitter(10, 1, 30, particleVS, particlePS, device, context, tempParticleTextureSRV, 
-			XMFLOAT3(-80, -6, 0), 
-			XMFLOAT3(3, 3, 3), 
-			XMFLOAT3(1, 1, 1), 
-			4);
-		emitters.push_back(em);
-#pragma endregion
+//
+//		//EntityTwo
+//		CreateEntity(baseData, false);
+//		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
+//		entityPosition = { 0, 1, 4 };
+//		liveEntities[1]->SetPositionDataStruct(entityPosition);
+//		liveEntities[1]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
+//		liveEntities[1]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
+//		liveEntities[1]->GetMaterial()->CustomTextureSet(device, 2, 255, 255, 255, 255); //Metal
+//		liveEntities[1]->GetMaterial()->CustomTextureSet(device, 3, 63, 63, 63, 255); //Rough
+//
+//		//EntityThree
+//		CreateEntity(baseData, false);
+//		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
+//		entityPosition = { 5, 1, 4 };
+//		liveEntities[2]->SetPositionDataStruct(entityPosition);
+//		liveEntities[2]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
+//		liveEntities[2]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
+//		liveEntities[2]->GetMaterial()->CustomTextureSet(device, 2, 255, 255, 255, 255); //Metal
+//		liveEntities[2]->GetMaterial()->CustomTextureSet(device, 3, 127, 127, 127, 255); //Rough
+//		
+//#pragma endregion
+//
+//#pragma region PlasticObjects
+//
+//		//EntityFour
+//		CreateEntity(baseData, false);
+//		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
+//		entityPosition = { -5, -1, 4 };
+//		liveEntities[3]->SetPositionDataStruct(entityPosition);
+//		liveEntities[3]->GetMaterial()->CustomTextureSet(device, 0, 125, 125, 125, 255); //Abledo
+//		liveEntities[3]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
+//		liveEntities[3]->GetMaterial()->CustomTextureSet(device, 2, 0, 0, 0, 255); //Metal
+//		liveEntities[3]->GetMaterial()->CustomTextureSet(device, 3, 0, 0, 0, 255); //Rough
+//
+//		//EntityFive
+//		CreateEntity(baseData, false);
+//		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
+//		entityPosition = { 0, -1, 4 };
+//		liveEntities[4]->SetPositionDataStruct(entityPosition);
+//		liveEntities[4]->GetMaterial()->CustomTextureSet(device, 0, 125, 125, 125, 255); //Abledo
+//		liveEntities[4]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
+//		liveEntities[4]->GetMaterial()->CustomTextureSet(device, 2, 0, 0, 0, 255); //Metal
+//		liveEntities[4]->GetMaterial()->CustomTextureSet(device, 3, 63, 63, 63, 255); //Rough
+//
+//		//EntitySix
+//		CreateEntity(baseData, false);
+//		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
+//		entityPosition = { 5, -1, 4 };
+//		liveEntities[5]->SetPositionDataStruct(entityPosition);
+//		liveEntities[5]->GetMaterial()->CustomTextureSet(device, 0, 125, 125, 125, 255); //Abledo
+//		liveEntities[5]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
+//		liveEntities[5]->GetMaterial()->CustomTextureSet(device, 2, 0, 0, 0, 255); //Metal
+//		liveEntities[5]->GetMaterial()->CustomTextureSet(device, 3, 127, 127, 127, 255); //Rough
+//#pragma endregion
+//		
+//#pragma region RefractiveObjects?
+//		
+//		//Entity Seven
+//		CreateEntity(baseData, true);
+//		//CustomTextureFunction (Device, SRVIndexLocation, R-Value, G-Value, B-Value, A-Value)
+//		entityPosition = { 10, -1, 4 };
+//		liveEntities[6]->SetPositionDataStruct(entityPosition);
+//		liveEntities[6]->GetMaterial()->CustomTextureSet(device, 0, 255, 255, 255, 255); //Abledo
+//		liveEntities[6]->GetMaterial()->CustomTextureSet(device, 1, 127, 127, 255, 255); //Normal
+//		liveEntities[6]->GetMaterial()->CustomTextureSet(device, 2, 0, 0, 0, 255); //Metal
+//		liveEntities[6]->GetMaterial()->CustomTextureSet(device, 3, 127, 127, 127, 255); //Rough
+//
+//		entityWindow.AssignTranslation(entityPosition.X, entityPosition.Y, entityPosition.Z);
+//#pragma endregion
+//
+//#pragma region Emitters
+//		LoadEmitterTexture(L"../../Assets/particles/circle_04.png");
+//		Emitter* em = new Emitter(50, 1, 5, particleVS, particlePS, device, context, tempParticleTextureSRV, 
+//			XMFLOAT3(-50, 0, 0), 
+//			XMFLOAT3(-1, 0, 0), 
+//			XMFLOAT3(-0.5f, 0, 0), 
+//			1);
+//		emitters.push_back(em);
+//
+//		LoadEmitterTexture(L"../../Assets/particles/smoke_10.png");
+//		em = new Emitter(300, 6, 5, particleVS, particlePS, device, context, tempParticleTextureSRV, 
+//			XMFLOAT3(-40, 0, 0),
+//			XMFLOAT3(0, 0, 0),
+//			XMFLOAT3(0, 0, 0),
+//			0);
+//		emitters.push_back(em);
+//
+//		LoadEmitterTexture(L"../../Assets/particles/spark_01.png");
+//		em = new Emitter(400, 8, 5, particleVS, particlePS, device, context, tempParticleTextureSRV, 
+//			XMFLOAT3(-30, 0, 0), 
+//			XMFLOAT3(1, 2, 0), 
+//			XMFLOAT3(0, 2, 0), 
+//			2);
+//		emitters.push_back(em);
+//
+//		LoadEmitterTexture(L"../../Assets/particles/light_01.png");
+//		em = new Emitter(100, 4, 12, particleVS, particlePS, device, context, tempParticleTextureSRV,
+//			XMFLOAT3(-90, 1, 0), 
+//			XMFLOAT3(8, 0, 4), 
+//			XMFLOAT3(0.7f, 0, 0),
+//			3);
+//		emitters.push_back(em);
+//
+//		LoadEmitterTexture(L"../../Assets/particles/star_07.png");
+//		em = new Emitter(10, 1, 30, particleVS, particlePS, device, context, tempParticleTextureSRV, 
+//			XMFLOAT3(-80, -6, 0), 
+//			XMFLOAT3(3, 3, 3), 
+//			XMFLOAT3(1, 1, 1), 
+//			4);
+//		emitters.push_back(em);
+//#pragma endregion
 
 }
 
