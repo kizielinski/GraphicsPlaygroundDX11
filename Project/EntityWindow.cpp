@@ -1,6 +1,6 @@
 #include "EntityWindow.h"
 
-EntityWindow::EntityWindow()
+EntityWindow::EntityWindow(HWND _handle, UIWindowCreation* windowParam) 
 {
 	name = "Entity List";
 	currentList = "Entity List";
@@ -12,6 +12,10 @@ EntityWindow::EntityWindow()
 	removeChild = false;
 	saveScene = false;
 	myEntityData = EntityDef(); //Stop vs complaining
+
+	handle = _handle;
+	windowToDisplay = windowParam;
+	
 }
 
 EntityWindow::~EntityWindow()
@@ -364,19 +368,17 @@ EntityPosition EntityWindow::ReturnTranslation()
 	return newPosition;
 }
 
-void EntityWindow::DisplayWindow(HWND windowHandle, int width, int height)
+
+void EntityWindow::DisplayEntityWindow(int windowWidth, int windowHeight)
 {
 	io = ImGui::GetIO();
-	//Start ImGui frame
-	ImGui_ImplDX11_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
 	if (isEnabled)
-    {
-		ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_Once);
+	{
+		ImGui::SetNextWindowSize(windowToDisplay->windowSize, ImGuiCond_Once);
 
-		BasicData(width, height);
+		BasicData(windowWidth, windowHeight);
 		ObjectInspector();
+
 		BrowserInput();
 
 		NewEntityButton();

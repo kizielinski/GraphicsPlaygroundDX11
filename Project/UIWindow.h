@@ -7,6 +7,13 @@
 #include <iostream>
 #include <codecvt>
 
+//Normal includes
+#include <string>
+#include <vector>
+#include <map>
+
+using namespace std;
+
 class UIWindow
 {
 	enum {
@@ -17,15 +24,35 @@ class UIWindow
 		Center_View = 95,
 	};
 public:
+
+	struct UIWindowCreation {
+		vector<string> buttons;
+		string Title;
+		map<string, int> name_information;
+		ImVec2 windowSize = ImVec2(200, 500);
+	};
+
 	UIWindow();
+	UIWindow(HWND _handle);
+	UIWindow(HWND _handle, UIWindowCreation* inputDat);
 	~UIWindow();
-	virtual void displayWindow(HWND windowHandle); //All ImGui draw calls here.
+
+	void StartFrame();
+	virtual void displayWindow(); //All ImGui draw calls here.
+
+
 protected:
 	std::string name; //User name of object
 	std::string currentList; //Entity or Lights
 	int index; //Number in list;
 	bool isEnabled;
 	bool readyToApplyData;
+	vector<string> buttonsToDisplay;
+	UIWindowCreation* windowToDisplay;
+	HWND handle;
+	void StringIntSameLine(map<string, int> pairs);
+
 private:
+	void Init();
 };
 

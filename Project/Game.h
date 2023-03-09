@@ -180,4 +180,9 @@ private:
 
 	//Data Manager for reading in a scene
 	DataManager* dm;
+
+	//Temp Values
+	UIWindow::UIWindowCreation newWindow;
+	UIWindow::UIWindowCreation entityWindowDef;
+	vector<UIWindow> windows;
 };

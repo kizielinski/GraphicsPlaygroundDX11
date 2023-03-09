@@ -3,13 +3,37 @@
 UIWindow::UIWindow()
 {
 	name = "Test";
-	currentList = "Test List";
-	index = 0;
-	isEnabled = true;
+}
+
+UIWindow::UIWindow(HWND _handle)
+{
+	handle = _handle;
+	//DefaultInit();
+}
+
+UIWindow::UIWindow(HWND _handle, UIWindowCreation* inputData)
+{
+	handle = _handle;
+	windowToDisplay = inputData;
+	Init();
 }
 
 UIWindow::~UIWindow()
 {
+}
+
+void UIWindow::Init()
+{
+	/*for (string s : windowToDisplay.buttons)
+	{
+		buttonsToDisplay.push_back(s);
+	}*/
+
+	//buttonsToDisplay.push_back("Mesh");
+	//buttonsToDisplay.push_back("Albedo");
+	//buttonsToDisplay.push_back("Normal");
+	//buttonsToDisplay.push_back("Rough");
+	//buttonsToDisplay.push_back("Metal");
 }
 
 void BrowseButton(std::string browseName)
@@ -55,32 +79,25 @@ void BrowseButton(std::string browseName)
 	}
 }
 
-void UIWindow::displayWindow(HWND windowHandle)
+void UIWindow::StartFrame()
 {
 	//Start ImGui frame
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
-	ImGui::SetNextWindowSize(ImVec2(200, 500), ImGuiCond_Once);
+}
 
-	std::string titleString = "Name: " + name;
-	ImGui::Begin(titleString.c_str());
+void UIWindow::displayWindow()
+{
+}
 
-	std::string infoString = std::string(currentList + " Index: ");
-	infoString += std::to_string(index);
-	ImGui::Text(infoString.c_str());
-	std::string clickCount = "Click Count: ";
-	if (ImGui::GetIO().WantCaptureMouse)
+//Prints key:value string:int pairs on the same line.
+void UIWindow::StringIntSameLine(map<string, int> pairs)
+{
+	for (auto kV : pairs)
 	{
-		BrowseButton("Mesh");
-		BrowseButton("Albedo");
-		BrowseButton("Normal");
-		BrowseButton("Rough");
-		BrowseButton("Metal");
+		ImGui::Text(kV.first.c_str());
+		ImGui::SameLine(1.0f);
+		ImGui::Text(to_string(kV.second).c_str());
 	}
-
-	ImGui::Text(clickCount.c_str());
-	ImGui::End();
-	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }

@@ -39,9 +39,9 @@ Game::Game(HINSTANCE hInstance)
 	CreateConsoleWindow(500, 120, 32, 120);
 	printf("Console window created successfully.  Feel free to printf() here.\n");
 #endif
-	
+
 	//Create camera
-	camera = new Camera(0, 0, -5, (float)width/height);
+	camera = new Camera(0, 0, -5, (float)width / height);
 
 	//Intialize all variables to remove Warnings
 	pixelShader = nullptr;
@@ -58,7 +58,7 @@ Game::Game(HINSTANCE hInstance)
 	newSRV = nullptr;
 	locationSRV = nullptr;
 	sky = nullptr;
-	tempEntity = nullptr; 
+	tempEntity = nullptr;
 	currentRender = nullptr;
 	specularIntensity = 1;
 	entityCounter = 0;
@@ -158,9 +158,10 @@ void Game::Init()
 	ImGui::StyleColorsDark();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; //Enable keyboard options
 
+	entityWindowDef.windowSize = ImVec2(500, 400);
+
 	//Intialize Window
-	testWindow = UIWindow();
-	entityWindow = EntityWindow();
+	entityWindow = EntityWindow(hWnd, &entityWindowDef);
 
 	//Initialize sampler state
 	D3D11_SAMPLER_DESC sampDescription = {};
@@ -918,5 +919,10 @@ void Game::Draw(float deltaTime, float totalTime)
 	//entityWindow.DisplayWindow(hWnd, DXCore::width, DXCore::height);
 
 	//All the above condensed into renderer now.
-	currentRender->Render(deltaTime, totalTime, camera, &entityWindow, hWnd);
+
+	//Start ImGui frame
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+	currentRender->Render(deltaTime, totalTime, camera, entityWindow, &windows, hWnd);
 }

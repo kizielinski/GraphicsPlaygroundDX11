@@ -93,16 +93,12 @@ Renderer::~Renderer()
 	mySkyBox = nullptr;
 }
 
-void Renderer::Update(float deltaTime, float totalTime)
-{
-}
-
 void Renderer::Order()
 {
 }
 
 // Render all lights and game objects in one go.
-void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindow* eW, HWND windowHandle)
+void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindow entityWindow,vector<UIWindow>* windows, HWND windowHandle)
 {
 	SimplePixelShader* sPixelShader;
 
@@ -263,9 +259,8 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 		context->OMSetDepthStencilState(0, 0);
 	}
 	
-	//Render Window and Imgui
-	eW->DisplayWindow(windowHandle, windowWidth, windowHeight);
-	RenderWindow();
+	RenderImGUI(entityWindow, windows);
+	//All ImGui Begin()/End() calls should be before this call
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
@@ -433,12 +428,18 @@ Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Renderer::GetSceneNormalSRV()
 { return sceneNormalSRV; }
 Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Renderer::GetSceneDepthSRV()
 { return sceneDepthSRV; }
-
 Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Renderer::GetFluidSRV()
 { return fluidSRV; }
 
-void Renderer::RenderWindow() 
+void Renderer::RenderImGUI(EntityWindow eW, vector<UIWindow>* windows) 
 {
+	eW.DisplayEntityWindow(windowWidth, windowHeight);
+
+	for (auto w : *windows)
+	{
+		w.displayWindow();
+	}
+
 	ImGui::SetNextWindowSize(ImVec2(480, 600), ImGuiCond_Once);
 	ImGui::Begin("Render Window");
 	ImGui::Image(this->GetSceneColorSRV().Get(), ImVec2((float)windowWidth / 4, (float)windowHeight / 4));
