@@ -40,7 +40,7 @@ Emitter::Emitter(
 
 	//Indices are static so we can just assign them all ahead of time 
 	//within a buffer and have them ready to go!
-	unsigned int* indices = new unsigned int[(int)maxParticles* 6];
+	indices = new unsigned int[(int)maxParticles* 6];
 	int indexCount = 0;
 	for (int i = 0; i < maxParticles * 4; i += 4)
 	{
@@ -85,7 +85,13 @@ Emitter::Emitter(
 
 Emitter::~Emitter()
 {
+	delete[] indices;
 	delete[] particles;
+
+	particles = nullptr;
+	indices = nullptr;
+	vs = nullptr;
+	ps = nullptr;
 }
 
 void Emitter::Update(float dt, float currentTime)

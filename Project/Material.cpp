@@ -37,10 +37,10 @@ Material::~Material()
 
 void Material::ClearMaterial()
 {
-    /*textureSRV->Release();
+    textureSRV->Release();
     normalMapSRV->Release();
     roughMapSRV->Release();
-    metalMapSRV->Release();*/
+    metalMapSRV->Release();
 }
 
 SimplePixelShader* Material::GetPixelShader()

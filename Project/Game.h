@@ -123,7 +123,6 @@ private:
 	EntityWindow entityWindow;
 	Entity* tempEntity;
 	vector<Entity*> liveEntities;
-	//vector<Light> lights;
 	int currentIndex;
 
 	SkyMap* sky;

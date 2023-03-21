@@ -14,6 +14,8 @@ Entity::Entity(Mesh* newMesh, Material* newMaterial, EntityDef newEntity, Graphi
 
 Entity::~Entity()
 {
+	GetMaterial()->ClearMaterial();
+	GetMesh().reset();
 }
 
 std::shared_ptr<Mesh> Entity::GetMesh()

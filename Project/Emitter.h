@@ -47,6 +47,7 @@ private:
 
 	//Our particles
 	int maxParticles;
+	unsigned int* indices;
 	Particle* particles;
 	float particleType;
 	DirectX::XMFLOAT3 posOffset;
