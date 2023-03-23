@@ -775,9 +775,9 @@ void Game::EstablishNewLightData()
 void Game::UpdateGUIWindow()
 {
 	entityWindow.SetCurrentEntity(
-		currentRender->ReturnCurrentEntity().GetDataStruct(),
-		currentRender->ReturnCurrentEntity().GetGraphicDataStruct(),
-		currentRender->ReturnCurrentEntity().GetPositionDataStruct()
+		currentRender->ReturnCurrentEntity()->GetDataStruct(),
+		currentRender->ReturnCurrentEntity()->GetGraphicDataStruct(),
+		currentRender->ReturnCurrentEntity()->GetPositionDataStruct()
 	);
 }
 
@@ -850,7 +850,7 @@ void Game::HandleUIActions()
 	{
 		GraphicData newData = entityWindow.ReturnData();
 		EstablishNewEntityData(newData);
-		//UpdateGUIWindow();
+		UpdateGUIWindow();
 		entityWindow.DisableNewData();
 	}
 	if (entityWindow.CanDeleteEntity() && entityCounter > 1)
@@ -932,5 +932,5 @@ void Game::Draw(float deltaTime, float totalTime)
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
-	currentRender->Render(deltaTime, totalTime, camera, entityWindow, &windows, hWnd);
+	currentRender->Render(deltaTime, totalTime, camera, &entityWindow, &windows, hWnd);
 }

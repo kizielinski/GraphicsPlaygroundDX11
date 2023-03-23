@@ -37,13 +37,13 @@ public:
 	~Renderer();
 
 	void Order();
-	void Render(float deltaTime, float totalTime, Camera* cam, EntityWindow entityWindow, vector<UIWindow>* windows, HWND windowHandle);
+	void Render(float deltaTime, float totalTime, Camera* cam, EntityWindow* entityWindow, vector<UIWindow>* windows, HWND windowHandle);
 	void SetCurrentIndex(int index);
 	void AddSkyBox(SkyMap* sM);
 	void AlterPosition(EntityPosition entityPos);
 	int EntitiesListSize();
 	int ReturnCurrentEntityIndex();
-	Entity ReturnCurrentEntity();
+	Entity* ReturnCurrentEntity();
 
 	void PreResize();
 
@@ -66,7 +66,7 @@ public:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetSceneDepthSRV();
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetFluidSRV();
 
-	void RenderImGUI(EntityWindow eW, vector<UIWindow>* windows);
+	void RenderImGUI(EntityWindow* eW, vector<UIWindow>* windows);
 
 private:
 	//Info from Game

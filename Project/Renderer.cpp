@@ -98,7 +98,7 @@ void Renderer::Order()
 }
 
 // Render all lights and game objects in one go.
-void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindow entityWindow,vector<UIWindow>* windows, HWND windowHandle)
+void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindow* entityWindow,vector<UIWindow>* windows, HWND windowHandle)
 {
 	SimplePixelShader* sPixelShader;
 
@@ -300,9 +300,9 @@ int Renderer::ReturnCurrentEntityIndex()
 	return currentIndex;
 }
 
-Entity Renderer::ReturnCurrentEntity()
+Entity* Renderer::ReturnCurrentEntity()
 {
-	return *entities[currentIndex];
+	return entities[currentIndex];
 }
 
 void Renderer::PreResize()
@@ -431,9 +431,9 @@ Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Renderer::GetSceneDepthSRV()
 Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Renderer::GetFluidSRV()
 { return fluidSRV; }
 
-void Renderer::RenderImGUI(EntityWindow eW, vector<UIWindow>* windows) 
+void Renderer::RenderImGUI(EntityWindow* eW, vector<UIWindow>* windows) 
 {
-	eW.DisplayEntityWindow(windowWidth, windowHeight);
+	eW->DisplayEntityWindow(windowWidth, windowHeight);
 
 	for (auto w : *windows)
 	{
