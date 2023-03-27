@@ -160,6 +160,7 @@
     <ClCompile Include="EntityWindow.cpp" />
     <ClCompile Include="FluidParticle.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="ImageWindow.cpp" />
     <ClCompile Include="imgGUI\imgui.cpp" />
     <ClCompile Include="imgGUI\imgui_demo.cpp" />
     <ClCompile Include="imgGUI\imgui_draw.cpp" />
@@ -188,6 +189,7 @@
     <ClInclude Include="EntityWindow.h" />
     <ClInclude Include="FluidParticle.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="ImageWindow.h" />
     <ClInclude Include="imgGUI\imconfig.h" />
     <ClInclude Include="imgGUI\imgui.h" />
     <ClInclude Include="imgGUI\imgui_impl_dx11.h" />

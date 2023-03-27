@@ -369,7 +369,7 @@ EntityPosition EntityWindow::ReturnTranslation()
 }
 
 
-void EntityWindow::DisplayEntityWindow(int windowWidth, int windowHeight)
+void EntityWindow::DisplayWindow(int windowWidth = 100, int windowHeight = 100)
 {
 	io = ImGui::GetIO();
 	if (isEnabled)

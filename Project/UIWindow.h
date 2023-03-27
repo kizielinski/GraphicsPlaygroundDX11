@@ -38,7 +38,7 @@ public:
 	~UIWindow();
 
 	void StartFrame();
-	virtual void displayWindow(); //All ImGui draw calls here.
+	virtual void DisplayWindow(int windowWidth, int windowHeight) = 0; //All ImGui draw calls here.
 
 
 protected:

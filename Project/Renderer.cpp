@@ -433,23 +433,23 @@ Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Renderer::GetFluidSRV()
 
 void Renderer::RenderImGUI(EntityWindow* eW, vector<UIWindow>* windows) 
 {
-	eW->DisplayEntityWindow(windowWidth, windowHeight);
+	eW->DisplayWindow(windowWidth, windowHeight);
 
-	for (auto w : *windows)
+	iW.SetSRVs({ 
+	GetSceneColorSRV().Get(),
+	GetSceneAmbientColorSRV().Get(),
+	GetSceneNormalSRV().Get(),
+	GetSceneDepthSRV().Get() });
+	iW.DisplaySettings(windowWidth, windowHeight, "M-RTV Window");
+	iW.DisplayWindow(480, 600);
+
+	/*for (auto w : *windows)
 	{
-		w.displayWindow();
-	}
+		w.DisplayWindow();
+	}*/
 
-	ImGui::SetNextWindowSize(ImVec2(480, 600), ImGuiCond_Once);
-	ImGui::Begin("Render Window");
-	ImGui::Image(this->GetSceneColorSRV().Get(), ImVec2((float)windowWidth / 4, (float)windowHeight / 4));
-	ImGui::Image(this->GetSceneAmbientColorSRV().Get(), ImVec2((float)windowWidth / 4, (float)windowHeight / 4));
-	ImGui::Image(this->GetSceneNormalSRV().Get(), ImVec2((float)windowWidth / 4, (float)windowHeight / 4));
-	ImGui::Image(this->GetSceneDepthSRV().Get(), ImVec2((float)windowWidth / 4, (float)windowHeight / 4));
-	ImGui::End();
+	iW.SetSRVs({ GetFluidSRV().Get() });
+	iW.DisplaySettings(windowWidth, windowHeight, "Fluids Window");
+	iW.DisplayWindow(480, 600);
 
-	ImGui::SetNextWindowSize(ImVec2(480, 600), ImGuiCond_Once);
-	ImGui::Begin("Fluids Window");
-	ImGui::Image(this->GetFluidSRV().Get(), ImVec2((float)windowWidth / 4, (float)windowHeight / 4));
-	ImGui::End();
 }

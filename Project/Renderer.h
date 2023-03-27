@@ -4,6 +4,7 @@
 #include "SkyMap.h"
 #include "Emitter.h"
 #include "EntityWindow.h"
+#include "ImageWindow.h"
 #include "SimpleShader.h"
 #include "LightObject.h"
 #include <DirectXMath.h>
@@ -119,6 +120,9 @@ private:
 	//Window Dims
 	unsigned int windowWidth;
 	unsigned int windowHeight;
+
+	//Image Window
+	ImageWindow iW;
 
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerOptions;
 

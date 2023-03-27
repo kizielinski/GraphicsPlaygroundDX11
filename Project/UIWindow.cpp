@@ -87,10 +87,6 @@ void UIWindow::StartFrame()
 	ImGui::NewFrame();
 }
 
-void UIWindow::displayWindow()
-{
-}
-
 //Prints key:value string:int pairs on the same line.
 void UIWindow::StringIntSameLine(map<string, int> pairs)
 {

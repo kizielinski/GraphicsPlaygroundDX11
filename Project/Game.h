@@ -119,7 +119,6 @@ private:
 	std::shared_ptr<Material> baseMaterial;
 	
 	//TestWindow
-	UIWindow testWindow;
 	EntityWindow entityWindow;
 	Entity* tempEntity;
 	vector<Entity*> liveEntities;

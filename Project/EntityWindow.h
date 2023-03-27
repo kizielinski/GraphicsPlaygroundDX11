@@ -7,7 +7,7 @@ class EntityWindow : public UIWindow
 public:
 	EntityWindow(HWND _handle = 0, UIWindowCreation* windowParam = nullptr);
 	~EntityWindow();
-	void DisplayEntityWindow(int windowWidth, int windowHeight);
+	void DisplayWindow(int windowWidth, int windowHeight);
 	void BrowseButton(std::string browseName);
 	void Enabled(bool value);
 	void DisableNewData();
