@@ -5,12 +5,6 @@ EntityWindow::EntityWindow(HWND _handle, UIWindowCreation* windowParam)
 	name = "Entity List";
 	currentList = "Entity List";
 	readyToApplyData = false;
-	newEntity = false;
-	deleteEntity = false;
-	updateSky = false;
-	addChild = false;
-	removeChild = false;
-	saveScene = false;
 	myEntityData = EntityDef(); //Stop vs complaining
 
 	handle = _handle;
@@ -112,27 +106,6 @@ void EntityWindow::Enabled(bool value)
 	isEnabled = value;
 }
 
-void EntityWindow::DisableNewData()
-{
-	readyToApplyData = false;
-}
-
-bool EntityWindow::CanApplyData()
-{
-	return readyToApplyData;
-}
-
-bool EntityWindow::CanDeleteEntity()
-{
-	if (myEntityData.index < 0) { return false; }
-	return deleteEntity;
-}
-
-bool EntityWindow::CanApplySky()
-{
-	return updateSky;
-}
-
 bool EntityWindow::GetKeyLock()
 {
 	return keyLock;
@@ -143,21 +116,16 @@ void EntityWindow::ReleaseKeyLock()
 	keyLock = true;
 }
 
-bool EntityWindow::SaveScene()
+WindowState EntityWindow::GetState()
 {
-	return saveScene;
-}
-
-void EntityWindow::SceneSaved()
-{
-	saveScene = false;
+	return state;
 }
 
 void EntityWindow::NewEntityButton()
 {
 	if (ImGui::Button("New Object"))
 	{
-		newEntity = true;
+		state = CreateNewEntity;
 		SetData();
 	}
 }
@@ -166,44 +134,15 @@ void EntityWindow::SaveSceneButton()
 {
 	if (ImGui::Button("Save Scene"))
 	{
-		saveScene = true;
+		state = SavingScene;
 	}
-}
-
-void EntityWindow::EntityDeletionComplete()
-{
-	deleteEntity = false;
-}
-
-void EntityWindow::SkyApplied()
-{
-	updateSky = false;
-}
-
-bool EntityWindow::CanAddChild()
-{
-	return addChild;
-}
-
-bool EntityWindow::CanRemoveChild()
-{
-	return removeChild;
-}
-
-bool EntityWindow::MakeNewEntity()
-{
-	return newEntity;
 }
 
 void EntityWindow::AddChildButton()
 {
 	if (ImGui::Button("Add Child"))
 	{
-		addChild = true;
-	}
-	else 
-	{
-		addChild = false;
+		state = AddChild;
 	}
 }
 
@@ -211,11 +150,7 @@ void EntityWindow::RemoveChildButton()
 {
 	if (ImGui::Button("Remove Child"))
 	{
-		removeChild = true;
-	}
-	else 
-	{
-		removeChild = false;
+		state = RemoveChild;
 	}
 }
 
@@ -288,11 +223,6 @@ std::wstring EntityWindow::ReturnSkyPath()
 	return skyMapPath;
 }
 
-void EntityWindow::NewEntityFinished()
-{
-	newEntity = false;
-}
-
 //Set current graphics data
 void EntityWindow::SetData()
 {
@@ -324,8 +254,7 @@ void EntityWindow::ApplyButton()
 {
 	if (ImGui::SmallButton("Apply Changes"))
 	{	
-		readyToApplyData = true;
-		//Pass in new graphic model/textures
+		state = ApplyingData;
 		SetData();
 	}
 }
@@ -334,7 +263,7 @@ void EntityWindow::ApplySky()
 {
 	if (ImGui::Button("Apply Sky"))
 	{	
-		updateSky = true;
+		state = ApplyingSky;
 	}
 }
 
@@ -342,7 +271,7 @@ void EntityWindow::RemoveEntityButton()
 {
 	if (ImGui::Button("Remove Object"))
 	{
-		deleteEntity = true;
+		state = DeleteCurrentEntity;
 	}
 }
 
@@ -371,6 +300,7 @@ EntityPosition EntityWindow::ReturnTranslation()
 
 void EntityWindow::DisplayWindow(int windowWidth = 100, int windowHeight = 100)
 {
+	state = WaitingForInput;
 	io = ImGui::GetIO();
 	if (isEnabled)
 	{

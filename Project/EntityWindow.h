@@ -2,31 +2,34 @@
 #include "UIWindow.h"
 #include "DataStruct.h"
 
+enum WindowState {
+	WaitingForInput,
+	ApplyingData,
+	DeleteCurrentEntity,
+	ApplyingSky,
+	SavingScene,
+	CreateNewEntity,
+	AddChild,
+	RemoveChild,
+};
+
 class EntityWindow : public UIWindow
 {
+
 public:
+
 	EntityWindow(HWND _handle = 0, UIWindowCreation* windowParam = nullptr);
 	~EntityWindow();
 	void DisplayWindow(int windowWidth, int windowHeight);
 	void BrowseButton(std::string browseName);
 	void Enabled(bool value);
-	void DisableNewData();
 	void SetData();
 	void SetCurrentEntity(EntityDef entityData, GraphicData graphicData, EntityPosition lastPosition);
-	bool CanApplyData();
-	bool CanDeleteEntity();
-	bool CanApplySky();
 	bool GetKeyLock();
-	bool MakeNewEntity();
 	void ApplySky();
-	void EntityDeletionComplete();
-	void SkyApplied();
-	bool CanAddChild();
-	bool CanRemoveChild();
-	void NewEntityFinished();
 	void ReleaseKeyLock();
-	bool SaveScene();
-	void SceneSaved();
+
+	WindowState GetState();
 
 	//Organization of various ImGui elements
 	void ObjectInspector();
@@ -40,6 +43,8 @@ public:
 	
 
 private:
+
+	WindowState state;
 	std::string meshPath;
 	std::wstring albedoPath;
 	std::wstring normalPath;
@@ -49,13 +54,7 @@ private:
 	EntityDef myEntityData;
 	GraphicData currentGraphicData;
 	EntityPosition newPosition;
-	bool newEntity;
-	bool deleteEntity;
-	bool updateSky;
 	bool keyLock;
-	bool addChild;
-	bool removeChild;
-	bool saveScene;
 	float translationOffset[3];
 	ImGuiIO io;
 

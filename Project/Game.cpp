@@ -841,54 +841,57 @@ void Game::HandleUIActions()
 		}
 	}
 
-	if (entityWindow.MakeNewEntity())
+	switch (entityWindow.GetState())
 	{
+	case WindowState::CreateNewEntity:
 		CreateEntity(entityWindow.ReturnData(), false);
-		entityWindow.NewEntityFinished();
-	}
-	if (entityWindow.CanApplyData())
-	{
+		break;
+
+	case WindowState::ApplyingData: {
 		GraphicData newData = entityWindow.ReturnData();
 		EstablishNewEntityData(newData);
-		UpdateGUIWindow();
-		entityWindow.DisableNewData();
-	}
-	if (entityWindow.CanDeleteEntity() && entityCounter > 1)
-	{
-		RemoveEntity(entityWindow.ReturnEntityData().index);
-		myMeshes.erase(myMeshes.begin() + entityWindow.ReturnEntityData().index);
-		entityWindow.EntityDeletionComplete();
-		UpdateGUIWindow();
-		entityCounter--;
-	}
+		UpdateGUIWindow(); 
+		}
+		break;
 
-	if (entityWindow.CanAddChild() && currentIndex <= liveEntities.size() - 2)
-	{
-		int temp = currentIndex;
-		liveEntities[currentIndex]->GetTransform()->AddChild(liveEntities[++temp]->GetTransform());
-	}
+	case WindowState::DeleteCurrentEntity:
+		if (entityCounter >= 1)
+		{
+			RemoveEntity(entityWindow.ReturnEntityData().index);
+			myMeshes.erase(myMeshes.begin() + entityWindow.ReturnEntityData().index);
+			UpdateGUIWindow();
+			entityCounter--;
+		}
+		break;
 
-	if (entityWindow.CanRemoveChild() && currentIndex >= 0)
-	{
-		if (liveEntities[currentIndex]->GetTransform()->GetChildCount() > 0)
+	case WindowState::AddChild:
+		if (currentIndex <= liveEntities.size() - 2)
+		{
+			int temp = currentIndex;
+			liveEntities[currentIndex]->GetTransform()->AddChild(liveEntities[++temp]->GetTransform());
+		}
+		break;
+
+		// FIX: Doesn't handle at any iterator value of the entties vector
+	case WindowState::RemoveChild:
+		if(currentIndex == 0 && liveEntities[currentIndex]->GetTransform()->GetChildCount() > 0)
 		{
 			liveEntities[currentIndex]->GetTransform()->RemoveChild(
 				liveEntities[currentIndex]->GetTransform()->GetChild(0)
 			);
 		}
-	}
+		break;
 
-	if (entityWindow.CanApplySky())
-	{
+	case WindowState::ApplyingSky: {
 		ChangeCubeMap(entityWindow.ReturnSkyPath());
-		wstring skyPath = entityWindow.ReturnSkyPath();
-		entityWindow.SkyApplied();
-	}
+		}
+		break;
 
-	if (entityWindow.SaveScene())
-	{
+	case WindowState::SavingScene:
 		dm->ConvertSceneToData();
-		entityWindow.SceneSaved();
+		break;
+	default:
+		break;
 	}
 
 	currentIndex = currentRender->ReturnCurrentEntityIndex();
