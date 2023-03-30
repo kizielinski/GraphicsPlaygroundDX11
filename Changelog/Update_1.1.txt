@@ -1,0 +1,8 @@
+Changelog 3/30/2023
+
+Refactored EntityWindow and UIWindow classes to utilize virtual functions. 
+Added ImageWindow class for specifically drawing any ImGUI image from DirectX SRVs.
+Refactored EntityWindow to use enum for window state instead of function/bool overhead.
+Updated ReadMe
+
+Bug: ASSIMP will not import multiple meshes without multiple buffers. Need to update mesh code to create multiple buffers if necessary and then allocate them all into one directX buffer.

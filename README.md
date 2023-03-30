@@ -1,6 +1,9 @@
 # Graphics Playground DirectX
 
 This repo is where my DirectX11 and DirectX12 projects live
+They are an extension of a smaller school project I started in college.
+I now extend them with new features and often refactor older code
+to production level standards when necessary.
 
 My current DirectX11 Projects are: 
 
