@@ -8,6 +8,7 @@ ImageWindow::ImageWindow(HWND _handle, UIWindowCreation* windowParam)
 
 ImageWindow::~ImageWindow()
 {
+	SRVs.clear();
 }
 
 void ImageWindow::DisplayWindow(int windowWidth, int windowHeight)

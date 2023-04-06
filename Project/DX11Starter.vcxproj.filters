@@ -19,6 +19,9 @@
     <Filter Include="imgGUI">
       <UniqueIdentifier>{d3333c59-47f1-4ae2-aa63-ae377dde095e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Game_PrototypeFiles">
+      <UniqueIdentifier>{afc6e383-7ddf-4b5a-a381-ef2da4d32c5d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DXCore.cpp">
@@ -94,6 +97,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ImageWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Block.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -183,6 +189,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ImageWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Block.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
