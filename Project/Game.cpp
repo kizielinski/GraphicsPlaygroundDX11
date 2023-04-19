@@ -144,6 +144,9 @@ Game::~Game()
 	delete finalOutputPS ;
 	delete refractionPS;
 
+	//Temp
+	delete normalNoise;
+
 
 	//Base
 	vertexShader = nullptr;
@@ -170,6 +173,8 @@ Game::~Game()
 	dm = nullptr;
 	currentRender = nullptr;
 
+	//temp
+	normalNoise = nullptr;
 }
 
 // --------------------------------------------------------
@@ -225,6 +230,12 @@ void Game::Init()
 	// geometric primitives (points, lines or triangles) we want to draw.  
 	// Essentially: "What kind of shape should the GPU draw with our data?"
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+
+	normalNoise = new HashNoise(device, 2);
+	noiseWindow.SetSRVs({ normalNoise->GenerateHashNoiseImage() });
+	noiseWindow.DisplaySettings(200, 200, "Noise");
+	int x = 0;
 }
 
 void Game::LoadLighting() 
@@ -725,11 +736,11 @@ void Game::CreateIBLScene()
 	baseData.metalPath = L"../../Assets/defaultTextures/defaultMetal_nonmetal.png";
 	entityPosition = { 0, 0, 0 };
 
-	CreateEntity(baseData, false);
-	entityPosition = { -5, -5, -5 };
-	liveEntities[7]->SetPositionDataStruct(entityPosition);
-	liveEntities[7]->GetMaterial()->CustomTextureSet(device, 2, 0, 0, 0, 255); //Metal
-	liveEntities[7]->GetMaterial()->CustomTextureSet(device, 3, 127, 127, 127, 255); //Rough
+	//CreateEntity(baseData, false);
+	//entityPosition = { -5, -5, -5 };
+	//liveEntities[7]->SetPositionDataStruct(entityPosition);
+	//liveEntities[7]->GetMaterial()->CustomTextureSet(device, 2, 0, 0, 0, 255); //Metal
+	//liveEntities[7]->GetMaterial()->CustomTextureSet(device, 3, 127, 127, 127, 255); //Rough
 }
 
 void Game::CreateBasicGeometry()
@@ -954,5 +965,6 @@ void Game::Draw(float deltaTime, float totalTime)
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
-	currentRender->Render(deltaTime, totalTime, camera, &entityWindow, &windows, hWnd);
+
+	currentRender->Render(deltaTime, totalTime, camera, &entityWindow, &noiseWindow, hWnd);
 }

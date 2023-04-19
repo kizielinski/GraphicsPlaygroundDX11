@@ -98,7 +98,7 @@ void Renderer::Order()
 }
 
 // Render all lights and game objects in one go.
-void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindow* entityWindow,vector<UIWindow>* windows, HWND windowHandle)
+void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindow* entityWindow, ImageWindow* noise, HWND windowHandle)
 {
 	SimplePixelShader* sPixelShader;
 
@@ -259,7 +259,10 @@ void Renderer::Render(float deltaTime, float totalTime, Camera* cam, EntityWindo
 		context->OMSetDepthStencilState(0, 0);
 	}
 	
-	RenderImGUI(entityWindow, windows);
+	noise->DisplaySettings(640, 640, "Noise Window");
+	noise->DisplayWindow(400, 500);
+
+	RenderImGUI(entityWindow);
 	//All ImGui Begin()/End() calls should be before this call
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -431,7 +434,7 @@ Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Renderer::GetSceneDepthSRV()
 Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Renderer::GetFluidSRV()
 { return fluidSRV; }
 
-void Renderer::RenderImGUI(EntityWindow* eW, vector<UIWindow>* windows) 
+void Renderer::RenderImGUI(EntityWindow* eW)
 {
 	eW->DisplayWindow(windowWidth, windowHeight);
 
@@ -443,10 +446,7 @@ void Renderer::RenderImGUI(EntityWindow* eW, vector<UIWindow>* windows)
 	iW.DisplaySettings(windowWidth, windowHeight, "M-RTV Window");
 	iW.DisplayWindow(480, 600);
 
-	/*for (auto w : *windows)
-	{
-		w.DisplayWindow();
-	}*/
+	int x = 0; 
 
 	iW.SetSRVs({ GetFluidSRV().Get() });
 	iW.DisplaySettings(windowWidth, windowHeight, "Fluids Window");

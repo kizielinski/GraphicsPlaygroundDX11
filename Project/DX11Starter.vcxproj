@@ -161,6 +161,7 @@
     <ClCompile Include="EntityWindow.cpp" />
     <ClCompile Include="FluidParticle.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="HashNoise.cpp" />
     <ClCompile Include="ImageWindow.cpp" />
     <ClCompile Include="imgGUI\imgui.cpp" />
     <ClCompile Include="imgGUI\imgui_demo.cpp" />
@@ -191,6 +192,7 @@
     <ClInclude Include="EntityWindow.h" />
     <ClInclude Include="FluidParticle.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="HashNoise.h" />
     <ClInclude Include="ImageWindow.h" />
     <ClInclude Include="imgGUI\imconfig.h" />
     <ClInclude Include="imgGUI\imgui.h" />

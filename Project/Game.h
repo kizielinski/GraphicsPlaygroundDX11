@@ -26,6 +26,8 @@
 #include "DataManager.h"
 #include "stdlib.h"
 
+//Noise Includes
+#include "HashNoise.h"
 
 class Game 
 	: public DXCore
@@ -182,5 +184,9 @@ private:
 	//Temp Values
 	UIWindow::UIWindowCreation newWindow;
 	UIWindow::UIWindowCreation entityWindowDef;
-	vector<UIWindow> windows;
+	vector<unique_ptr<UIWindow>> imageWindows;
+
+	//Noise Fields
+	HashNoise* normalNoise; 
+	ImageWindow noiseWindow;
 };
