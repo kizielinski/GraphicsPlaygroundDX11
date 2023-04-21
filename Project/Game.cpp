@@ -232,7 +232,7 @@ void Game::Init()
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 
-	normalNoise = new HashNoise(device, 2);
+	normalNoise = new HashNoise(device, 80);
 	noiseWindow.SetSRVs({ normalNoise->GenerateHashNoiseImage() });
 	noiseWindow.DisplaySettings(200, 200, "Noise");
 	int x = 0;
